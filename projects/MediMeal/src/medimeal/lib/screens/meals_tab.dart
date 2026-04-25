@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medimeal/services/gemini_meal_service.dart';
 
 import '../models/care_state.dart';
 import '../models/meal_plan.dart';
@@ -21,21 +22,39 @@ class MealsTab extends StatefulWidget {
 class _MealsTabState extends State<MealsTab> {
   final TextEditingController ingredientsController = TextEditingController();
 
+  bool isLoading = false;
+  String? errorMessage;
+
   String selectedMealType = 'Breakfast';
   MealPlan? generatedMealPlan;
 
   final List<String> mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
-  void generateMealPlan() {
-    final mealPlan = MealPlannerService.generateMockMealPlan(
-      ingredientsText: ingredientsController.text,
-      mealType: selectedMealType,
-      careState: widget.careState,
-    );
-
+  Future<void> generateMealPlan() async {
     setState(() {
-      generatedMealPlan = mealPlan;
+      isLoading = true;
+      errorMessage = null;
     });
+
+    try {
+      final mealPlan = await GeminiMealService.generateMealPlan(
+        ingredientsText: ingredientsController.text,
+        mealType: selectedMealType,
+        careState: widget.careState,
+      );
+
+      setState(() {
+        generatedMealPlan = mealPlan;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -139,14 +158,22 @@ class _MealsTabState extends State<MealsTab> {
                   ),
                   const SizedBox(height: 18),
                   ElevatedButton(
-                    onPressed: generateMealPlan,
-                    child: const Text('Generate Meal Plan'),
+                    onPressed: isLoading ? null : generateMealPlan,
+                    child: Text(
+                        isLoading ? 'Generating...' : 'Generate Meal Plan'),
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
+          if (errorMessage != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              errorMessage!,
+              style: const TextStyle(color: Colors.redAccent),
+            ),
+          ],
           const SectionTitle(title: 'Suggested Meal'),
           if (generatedMealPlan == null)
             const SummaryCard(

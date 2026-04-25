@@ -12,4 +12,14 @@ class MealPlan {
     required this.steps,
     required this.reason,
   });
+
+  factory MealPlan.fromJson(Map<String, dynamic> json) {
+    return MealPlan(
+      title: json['title'] ?? '',
+      summary: json['summary'] ?? '',
+      ingredientsUsed: List<String>.from(json['ingredientsUsed'] ?? []),
+      steps: List<String>.from(json['steps'] ?? []),
+      reason: json['reason'] ?? '',
+    );
+  }
 }

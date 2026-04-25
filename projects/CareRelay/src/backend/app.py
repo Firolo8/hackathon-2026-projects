@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from drug_check import check_interactions
 from fhir_utils import load_patient
 
 app = Flask(__name__)
@@ -23,7 +24,10 @@ def get_brief():
 
 @app.route("/api/drugs/interactions")
 def get_interactions():
-    return jsonify({"message": "drug interactions endpoint ready"})
+    meds = [med.strip() for med in request.args.get("meds", "").split(",") if med.strip()]
+    if not meds:
+        return jsonify({"error": "Provide medications with ?meds=med1,med2"}), 400
+    return jsonify(check_interactions(meds))
 
 
 @app.route("/api/ner", methods=["POST"])

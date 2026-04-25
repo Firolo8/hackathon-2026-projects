@@ -64,15 +64,45 @@ Timeline: 300
 Metrics: ['blood_pressure', 'egfr', 'glucose', 'hba1c', 'ldl', 'triglycerides', 'weight']
 ```
 
+### GET `/api/drugs/interactions`
+
+Checks a comma-separated medication list against the OpenFDA drug label API and returns warning/interaction text when label data is found.
+
+Example:
+
+```bash
+curl "http://127.0.0.1:5000/api/drugs/interactions?meds=metformin,simvastatin,amlodipine"
+```
+
+Response sections:
+
+- `warnings`: OpenFDA warning and drug interaction excerpts for matched medications
+- `checked`: per-medication match status and normalized OpenFDA query
+- `disclaimer`: demo safety note
+
+Example summary:
+
+```json
+{
+  "checked": [
+    {"medication": "metformin", "query": "metformin", "matched": true}
+  ],
+  "warnings": [
+    {
+      "medication": "metformin",
+      "source": "OpenFDA drug label API",
+      "warning": "...",
+      "interaction": "..."
+    }
+  ]
+}
+```
+
 ## Planned Endpoints
 
 ### POST `/api/brief`
 
 Planned: generate a first-visit brief from patient data using a HuggingFace medical model.
-
-### GET `/api/drugs/interactions`
-
-Planned: check current medications against OpenFDA label data and return warnings.
 
 ### POST `/api/ner`
 

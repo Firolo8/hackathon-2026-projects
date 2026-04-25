@@ -7,7 +7,7 @@ class DiseasePredictor:
     def __init__(self): 
         self.model = joblib.load('ml_service/disease_model.pkl')
         self.label_encoder = joblib.load('ml_service/label_encoder.pkl') 
-        with open('ml_service/feature_mapping.json', 'r') as f: 
+        with open('ml_service/symptoms.json', 'r') as f: 
             self.symptoms = json.load(f) 
 
 

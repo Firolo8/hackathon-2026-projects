@@ -109,8 +109,6 @@ export default function Triage({ session, onBack, onSave }) {
   const [isLoading, setIsLoading] = useState(false)
   const [assessment, setAssessment] = useState(() => getInitialAssessment(session))
   const [showQuick, setShowQuick] = useState(() => !session?.conversation?.some(msg => msg.role === 'user'))
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('anthropic_key') || '')
-  const [showKeyInput, setShowKeyInput] = useState(false)
   const sessionIdRef = useRef(session?.id || createSessionId())
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
@@ -120,12 +118,6 @@ export default function Triage({ session, onBack, onSave }) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages, isLoading])
-
-  const saveKey = (key) => {
-    localStorage.setItem('anthropic_key', key)
-    setApiKey(key)
-    setShowKeyInput(false)
-  }
 
   const saveSessionSnapshot = (conversation, assessmentData = null) => {
     const userMessages = conversation.filter(msg => msg.role === 'user')
@@ -149,11 +141,6 @@ export default function Triage({ session, onBack, onSave }) {
     const msg = text || input
     if (!msg.trim() || isLoading) return
 
-    if (!apiKey) {
-      setShowKeyInput(true)
-      return
-    }
-
     const userMessage = { role: 'user', content: msg.trim(), timestamp: formatTime() }
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
@@ -165,15 +152,10 @@ export default function Triage({ session, onBack, onSave }) {
     try {
       const apiMessages = updatedMessages.map(({ role, content }) => ({ role, content }))
 
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          max_tokens: 1000,
           messages: [
             { role: 'system', content: SYSTEM_PROMPT },
             ...apiMessages,
@@ -234,37 +216,6 @@ export default function Triage({ session, onBack, onSave }) {
   return (
     <div className={styles.container}>
 
-      {/* API Key Modal */}
-      {showKeyInput && (
-        <div className={styles.overlay}>
-          <div className={styles.modal}>
-            <h2 className={styles.modalTitle}>Enter your API Key</h2>
-            <p className={styles.modalText}>
-              Get a free API key at{' '}
-              <a href="https://console.groq.com" target="_blank" rel="noreferrer" className={styles.link}>
-                console.groq.com
-              </a>
-              {' '}- free, no credit card needed.
-            </p>
-            <input
-              className={styles.modalInput}
-              type="password"
-              placeholder="gsk_..."
-              defaultValue={apiKey}
-              id="keyInput"
-              autoFocus
-            />
-            <div className={styles.modalActions}>
-              <button className={styles.cancelBtn} onClick={() => setShowKeyInput(false)}>Cancel</button>
-              <button className={styles.saveBtn} onClick={() => {
-                const val = document.getElementById('keyInput').value
-                if (val.trim()) saveKey(val.trim())
-              }}>Save & Continue</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
@@ -284,9 +235,6 @@ export default function Triage({ session, onBack, onSave }) {
           </div>
         </div>
         <div className={styles.headerRight}>
-          <button className={styles.keyBtn} onClick={() => setShowKeyInput(true)} title="API Key">
-            🔑
-          </button>
           <button className={styles.resetBtn} onClick={reset}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/>

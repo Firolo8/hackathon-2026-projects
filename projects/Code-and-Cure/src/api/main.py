@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from src.api.jwt_handler import decode_token
 
 # Import routes (Will be enabled as we build them)
 from src.api.routes import auth, symptoms, doctors, appointments
@@ -20,6 +22,32 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"], 
 )
+
+# --- AUDIT LOG MIDDLEWARE ---
+# Intercepts every mutating request to log the action to the DB.
+class AuditLogMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # 1. Let the request proceed through the router
+        response = await call_next(request)
+        
+        # 2. Only log mutations (writes, updates, deletes)
+        if request.method in ["POST", "PATCH", "DELETE"]:
+            user_id = "anonymous"
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                try:
+                    payload = decode_token(auth_header.split(" ")[1])
+                    user_id = payload.get("user_id", "unknown")
+                except Exception:
+                    pass # Invalid tokens are handled by routes, we just log "anonymous"
+            
+            # Mock Person 4 DB Call
+            # from src.database.db_client import log_action
+            print(f"[AUDIT] User: {user_id} | Action: {request.method} {request.url.path} | IP: {request.client.host}")
+            
+        return response
+
+app.add_middleware(AuditLogMiddleware)
 
 @app.get("/")
 async def root():

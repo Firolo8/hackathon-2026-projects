@@ -46,7 +46,6 @@ class AppointmentSlot(BaseModel):
 
 class BookingRequest(BaseModel):
     slot_id: str
-    patient_id: str
 
 # --- Consultation & SOAP Models ---
 class ConsultationTranscript(BaseModel):

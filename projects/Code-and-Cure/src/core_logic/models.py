@@ -20,6 +20,8 @@ class SpecialtyRecommendation:
     department: str
     rationale: str
     source_symptom: str
+    matched_cues: list[str] = field(default_factory=list)
+    confidence: float | None = None
 
 
 @dataclass(frozen=True)

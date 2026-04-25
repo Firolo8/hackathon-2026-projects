@@ -14,7 +14,8 @@
   --color-text-muted: #607D8B;
   --color-bg: #FFFFFF;
   --color-surface: #ffffff;
-  --color-surface-soft: #f1f8e9; /* Light version of secondary */
+  --color-surface-soft: #f1f8e9;
+  /* Light version of secondary */
   --color-border: #ECEFF1;
 
   --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;

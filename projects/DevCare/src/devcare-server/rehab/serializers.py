@@ -41,6 +41,7 @@ class RehabPlanCreateSerializer(serializers.Serializer):
     patient_id = serializers.IntegerField(min_value=1)
     name = serializers.CharField(max_length=120)
     tasks = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    weekly_goal = serializers.IntegerField(min_value=1, max_value=7, required=False, default=6)
     exercises = RehabPlanExerciseWriteSerializer(many=True, required=False, default=list)
 
     def validate(self, data):
@@ -96,7 +97,8 @@ class RehabPlanCreateSerializer(serializers.Serializer):
             doctor=doctor,
             patient=patient,
             name=validated_data["name"],
-            tasks=validated_data.get("tasks", [])
+            tasks=validated_data.get("tasks", []),
+            weekly_goal=validated_data.get("weekly_goal", 6)
         )
 
         plan_links = []

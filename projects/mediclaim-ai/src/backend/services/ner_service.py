@@ -351,21 +351,26 @@ async def enhance_with_hf_ner(text: str, entities: List[ExtractedEntity]) -> Lis
 
     headers = {"Authorization": f"Bearer {settings.hf_api_token}"}
     truncated = text[:2000]
-    resp = requests.post(
-        f"https://api-inference.huggingface.co/models/{settings.hf_ner_model}",
-        headers=headers,
-        json={"inputs": truncated},
-        timeout=15
-    )
     
-    results = resp.json()
-    if isinstance(results, list):
-        for ent in results:
-            if isinstance(ent, dict) and "word" in ent:
-                entities.append(ExtractedEntity(
-                    text=ent["word"],
-                    label=ent.get("entity_group", ent.get("entity", "MEDICAL")),
-                    confidence=ent.get("score", 0.5),
-                ))
+    try:
+        resp = requests.post(
+            f"https://api-inference.huggingface.co/models/{settings.hf_ner_model}",
+            headers=headers,
+            json={"inputs": truncated},
+            timeout=15
+        )
+        resp.raise_for_status()
+        
+        results = resp.json()
+        if isinstance(results, list):
+            for ent in results:
+                if isinstance(ent, dict) and "word" in ent:
+                    entities.append(ExtractedEntity(
+                        text=ent["word"],
+                        label=ent.get("entity_group", ent.get("entity", "MEDICAL")),
+                        confidence=ent.get("score", 0.5),
+                    ))
+    except Exception as e:
+        logger.warning(f"HF NER enhancement failed: {e}")
 
     return entities

@@ -11,7 +11,10 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  Platform,
 } from 'react-native';
+
+const API_BASE_URL = 'http://192.168.41.72:8000'; // Updated to use your local network IP for Expo Go
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function LoginScreen() {
@@ -21,11 +24,31 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleLogin = () => {
-    if (email.trim() === 'puspa@gmail.com' && password === 'puku123@') {
-      router.replace('/' as any);
-    } else {
-      Alert.alert('Login Failed', 'Invalid email or password. Please try again.');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password: password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        if (data.user.role === 'doctor') {
+           router.replace('/(doctor)/doctor'); 
+        } else {
+           router.replace('/(main)/home');
+        }
+      } else {
+        Alert.alert('Login Failed', 'Invalid email or password. Please try again.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong. Is the server running?');
     }
   };
 
@@ -134,7 +157,7 @@ export default function LoginScreen() {
             {/* Register Link */}
             <View style={styles.registerContainer}>
               <Text style={styles.registerText}>Don{"'"}t have an account? </Text>
-              <TouchableOpacity onPress={() => router.push('/signup' as any)}>
+              <TouchableOpacity onPress={() => router.push('/signup')}>
                 <Text style={styles.registerLink}>Register here</Text>
               </TouchableOpacity>
             </View>

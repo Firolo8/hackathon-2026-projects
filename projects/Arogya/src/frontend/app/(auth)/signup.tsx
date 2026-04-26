@@ -11,7 +11,10 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  Platform,
 } from 'react-native';
+
+const API_BASE_URL = 'http://192.168.41.72:8000'; // Updated to use your local network IP for Expo Go
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function SignupScreen() {
@@ -23,14 +26,50 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [role, setRole] = useState('patient');
 
   const handleBackNavigation = () => {
     if (router.canGoBack()) {
       router.back();
       return;
     }
-
     router.replace('/');
+  };
+
+  const handleSignup = async () => {
+    if (!agreedToTerms) {
+      Alert.alert('Error', 'You must agree to the Terms of Service.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts/register/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: email,
+          email: email,
+          password: password,
+          first_name: fullName,
+          role: role,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert('Success', 'Account created successfully!', [
+          { text: 'OK', onPress: handleBackNavigation }
+        ]);
+      } else {
+        Alert.alert('Registration Failed', JSON.stringify(data));
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong. Is the server running?');
+    }
   };
 
   return (
@@ -52,6 +91,25 @@ export default function SignupScreen() {
 
           {/* Form Section */}
           <View style={styles.formSection}>
+            {/* Role Selection */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>I am a</Text>
+              <View style={styles.roleContainer}>
+                <TouchableOpacity
+                  style={[styles.roleButton, role === 'patient' && styles.roleButtonActive]}
+                  onPress={() => setRole('patient')}
+                >
+                  <Text style={[styles.roleButtonText, role === 'patient' && styles.roleButtonTextActive]}>Patient</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleButton, role === 'doctor' && styles.roleButtonActive]}
+                  onPress={() => setRole('doctor')}
+                >
+                  <Text style={[styles.roleButtonText, role === 'doctor' && styles.roleButtonTextActive]}>Doctor</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {/* Full Name Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Full Name</Text>
@@ -77,6 +135,7 @@ export default function SignupScreen() {
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
             </View>
@@ -143,11 +202,7 @@ export default function SignupScreen() {
             </View>
 
             {/* Sign Up Button */}
-            <TouchableOpacity style={styles.signupButton} onPress={() => {
-              Alert.alert('Success', 'Account created successfully!', [
-                { text: 'OK', onPress: handleBackNavigation }
-              ]);
-            }}>
+            <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
               <Text style={styles.signupButtonText}>Sign Up</Text>
             </TouchableOpacity>
 
@@ -163,6 +218,7 @@ export default function SignupScreen() {
       </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -230,6 +286,30 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     padding: 8,
+  },
+  roleContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  roleButtonActive: {
+    borderColor: '#2A7B88',
+    backgroundColor: '#EAF3FA',
+  },
+  roleButtonText: {
+    color: '#666',
+    fontWeight: '600',
+  },
+  roleButtonTextActive: {
+    color: '#2A7B88',
   },
   termsContainer: {
     flexDirection: 'row',

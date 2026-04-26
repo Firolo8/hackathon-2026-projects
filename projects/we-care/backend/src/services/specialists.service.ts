@@ -1,26 +1,33 @@
 import { supabase } from "../lib/supabase";
 import { extractLookupName } from "./lookup-service";
 
-export async function getAvailableSpecialists(specialty?: string) {
-  let query = supabase
-    .from("specialists")
+interface SpecialistsQueryOptions {
+  specialty?: string;
+  page: number;
+  pageSize: number;
+}
+
+export async function getAvailableSpecialists({
+  specialty,
+  page,
+  pageSize,
+}: SpecialistsQueryOptions) {
+  const { data, error } = await supabase
+    .from("doctors")
     .select(
-      "id, full_name, phone, available, specialties(name), hospitals(name)",
+      "id, full_name, contact_number, specialties(name), hospitals(name)",
     )
-    .eq("available", true)
     .order("full_name");
 
-  const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  return data
-    .map((specialist) => ({
-      id: specialist.id,
-      full_name: specialist.full_name,
-      specialty: extractLookupName(specialist.specialties) ?? "",
-      hospital: extractLookupName(specialist.hospitals) ?? "",
-      phone: specialist.phone,
-      available: specialist.available,
+  const filteredSpecialists = data
+    .map((doctor) => ({
+      id: doctor.id,
+      full_name: doctor.full_name,
+      specialty: extractLookupName(doctor.specialties) ?? "",
+      hospital: extractLookupName(doctor.hospitals) ?? "",
+      phone: doctor.contact_number,
     }))
     .filter((specialist) => {
       if (!specialty) return true;
@@ -28,4 +35,16 @@ export async function getAvailableSpecialists(specialty?: string) {
         .toLowerCase()
         .includes(specialty.toLowerCase());
     });
+
+  const total = filteredSpecialists.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const startIndex = (page - 1) * pageSize;
+
+  return {
+    items: filteredSpecialists.slice(startIndex, startIndex + pageSize),
+    page,
+    pageSize,
+    total,
+    totalPages,
+  };
 }

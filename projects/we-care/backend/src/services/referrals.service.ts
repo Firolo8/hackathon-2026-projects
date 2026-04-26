@@ -3,6 +3,11 @@ import { randomUUID } from 'crypto';
 import { sendPatientPortalEmail } from './email.service';
 import { extractLookupName } from "./lookup-service";
 
+interface ReferralsQueryOptions {
+  page: number;
+  pageSize: number;
+}
+
 export async function createPatientAndReferral(
   doctorId: string,
   patientData: {
@@ -41,33 +46,42 @@ export async function createPatientAndReferral(
   return { patient, referral };
 }
 
-export async function getReferralsByDoctor(doctorId: string) {
-  const { data, error } = await supabase
+export async function getReferralsByDoctor(
+  doctorId: string,
+  { page, pageSize }: ReferralsQueryOptions,
+) {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
     .from("referrals")
     .select(
       `
       id, clinical_notes, diagnosis, urgency, status, created_at,
       patients (id, full_name),
-      specialists (
+      specialist:doctors!referrals_specialist_id_fkey (
         id,
         full_name,
+        contact_number,
         specialties(name),
         hospitals(name)
       )
     `,
+      { count: "exact" },
     )
     .eq("doctor_id", doctorId)
+    .range(from, to)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
   const mappedReferrals = data.map((referral) => {
-    const specialist = Array.isArray(referral.specialists)
-      ? referral.specialists[0]
-      : referral.specialists;
+    const specialist = Array.isArray(referral.specialist)
+      ? referral.specialist[0]
+      : referral.specialist;
 
     return {
       ...referral,
-      specialists: specialist
+      specialist: specialist
         ? {
             ...specialist,
             specialty: extractLookupName(specialist.specialties) ?? "",
@@ -77,7 +91,16 @@ export async function getReferralsByDoctor(doctorId: string) {
     };
   });
 
-  return mappedReferrals;
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  return {
+    items: mappedReferrals,
+    page,
+    pageSize,
+    total,
+    totalPages,
+  };
 }
 
 export async function getReferralById(referralId: string, doctorId: string) {
@@ -87,7 +110,7 @@ export async function getReferralById(referralId: string, doctorId: string) {
       `
       *,
       patients (*),
-      specialists (
+      specialist:doctors!referrals_specialist_id_fkey (
         *,
         specialties(name),
         hospitals(name)
@@ -100,13 +123,13 @@ export async function getReferralById(referralId: string, doctorId: string) {
     .single();
 
   if (error) throw new Error(error.message);
-  const specialist = Array.isArray(data.specialists)
-    ? data.specialists[0]
-    : data.specialists;
+  const specialist = Array.isArray(data.specialist)
+    ? data.specialist[0]
+    : data.specialist;
 
   return {
     ...data,
-    specialists: specialist
+    specialist: specialist
       ? {
           ...specialist,
           specialty: extractLookupName(specialist.specialties) ?? "",

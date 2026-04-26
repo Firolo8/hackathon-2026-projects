@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BillUploader from '../components/BillUploader'
 import InsuranceSelector from '../components/InsuranceSelector'
-import { analyzeBill, getInsuranceProviders } from '../api/client'
+import { analyzeBill, getInsuranceProviders, downloadDemoBill } from '../api/client'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -11,6 +11,12 @@ export default function Home() {
   const [providers, setProviders] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [toastMessage, setToastMessage] = useState(null)
+
+  const showToast = (msg) => {
+    setToastMessage(msg)
+    setTimeout(() => setToastMessage(null), 4000)
+  }
 
   useEffect(() => {
     getInsuranceProviders()
@@ -30,6 +36,21 @@ export default function Home() {
       setError(msg)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownloadDemo = async (type) => {
+    try {
+      const blob = await downloadDemoBill(type)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Demo_Bill_${type}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error("Failed to download demo:", err)
+      showToast("Failed to download demo bill. Is the Python backend running?")
     }
   }
 
@@ -73,6 +94,22 @@ export default function Home() {
           Upload Your Medical Bill
         </h2>
         <BillUploader file={file} onFileSelect={setFile} />
+
+        {/* Demo Bill Generator */}
+        <div className="mt-6 pt-6 border-t border-white/[0.05] flex flex-col items-center">
+          <p className="text-sm text-slate-light mb-3">Don't have a bill? Generate a demo PDF:</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button onClick={() => handleDownloadDemo('clean')} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] rounded-lg text-xs font-medium text-white transition-colors flex items-center gap-2">
+              📄 Fair Bill
+            </button>
+            <button onClick={() => handleDownloadDemo('mixed')} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] rounded-lg text-xs font-medium text-white transition-colors flex items-center gap-2">
+              📄 Mixed Bill
+            </button>
+            <button onClick={() => handleDownloadDemo('severe')} className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] rounded-lg text-xs font-medium text-amber-100 transition-colors flex items-center gap-2">
+              📄 Overcharged Bill
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Insurance */}
@@ -147,6 +184,14 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#0f172a] border border-red/30 text-white px-5 py-3 rounded-xl shadow-2xl animate-fade-in flex items-center gap-3">
+          <span className="text-red-400 text-lg">⚠️</span>
+          <span className="text-sm font-medium">{toastMessage}</span>
+        </div>
+      )}
     </div>
   )
 }

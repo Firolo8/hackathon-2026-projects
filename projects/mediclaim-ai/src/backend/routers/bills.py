@@ -4,7 +4,9 @@ POST /api/bills/analyze — main analysis endpoint.
 """
 
 import logging
+import os
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi.responses import FileResponse
 from backend.models.bill import BillAnalysisResponse, ExtractedBillData
 from backend.services.extractor import extract_text_from_pdf
 from backend.services.ner_service import extract_entities, enhance_with_hf_ner
@@ -16,6 +18,27 @@ from backend.dependencies import get_insurance_plans, calculate_coverage
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/bills", tags=["Bills"])
+
+
+@router.get("/demo/{bill_type}")
+async def get_demo_bill(bill_type: str):
+    """Return a pre-generated demo PDF bill."""
+    valid_types = ["mixed", "severe", "clean"]
+    if bill_type not in valid_types:
+        raise HTTPException(status_code=400, detail="Invalid demo bill type")
+    
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(current_dir, "../../.."))
+    file_path = os.path.join(project_root, "demo", f"demo_bill_{bill_type}.pdf")
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Demo bill not found.")
+        
+    return FileResponse(
+        path=file_path, 
+        media_type="application/pdf", 
+        filename=f"Demo_Bill_{bill_type.title()}.pdf"
+    )
 
 
 @router.post("/analyze", response_model=BillAnalysisResponse)

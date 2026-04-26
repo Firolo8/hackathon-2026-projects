@@ -252,10 +252,10 @@ export default function ReferralDetailPage() {
           <ReferralSummaryCard
             icdCode="N/A"
             diagnosis={referral.diagnosis ?? 'N/A'}
-            referredToName={specialist.full_name}
-            referredToInitials={toInitials(specialist.full_name)}
-            referredToOrg={specialist.hospital}
-            referredBy={doctor?.full_name ? `Dr. ${doctor.full_name}` : 'N/A'}
+            referredToName={targetDoctor?.full_name ?? 'Unassigned'}
+            referredToInitials={toInitials(targetDoctor?.full_name ?? 'NA')}
+            referredToOrg={targetDoctor?.hospital ?? referral.required_specialty ?? 'Unassigned'}
+            referredBy={referredByDoctor?.full_name ?? doctor?.full_name ?? 'N/A'}
           />
           {referral.appointment ? (
             <AppointmentCard

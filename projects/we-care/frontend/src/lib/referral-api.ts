@@ -21,6 +21,7 @@ export interface ReferralDetail {
     full_name: string;
     specialty: string;
     hospital: string;
+  } | null;
   referredByDoctor: {
     full_name: string;
     specialty: string;

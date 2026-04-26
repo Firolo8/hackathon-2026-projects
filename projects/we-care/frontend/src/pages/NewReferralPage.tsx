@@ -113,10 +113,12 @@ export default function NewReferralPage() {
         phone: extracted.phone || undefined,
       },
       referral: {
-        referred_by: specialistId || undefined,
+        doctor_id: specialistId,
         clinical_notes: clinicalNote,
         diagnosis: extracted.diagnosis,
-        required_specialty: specialists.find((specialist) => specialist.id === targetDoctorId)?.subspecialty ?? extracted.requiredSpecialty,
+        required_specialty:
+          specialists.find((specialist) => specialist.id === specialistId)?.subspecialty ??
+          extracted.requiredSpecialty,
         urgency: URGENCY_MAP[extracted.urgency] ?? 'low',
       },
     })

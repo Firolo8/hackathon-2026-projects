@@ -134,7 +134,7 @@ export default function PatientPortalPage() {
   }
 
   const firstName = referral.patients.full_name.split(" ")[0];
-  const specialist = referral.specialist;
+  const specialist = referral.targetDoctor;
   const specialistName = specialist?.full_name ?? "Unassigned";
   const specialistSpecialty = specialist?.specialty ?? "N/A";
   const specialistHospital = specialist?.hospital ?? "N/A";

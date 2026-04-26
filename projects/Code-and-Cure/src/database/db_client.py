@@ -483,6 +483,30 @@ def get_prescriptions_for_patient(patient_id: str) -> list[dict]:
     return res.data or []
 
 
+def get_prescription_by_id(prescription_id: str) -> dict | None:
+    res = (
+        supabase.table("prescriptions")
+        .select(
+            "id,appointment_id,patient_id,doctor_id,requested_medication,approval_status,block_reason,created_at"
+        )
+        .eq("id", prescription_id)
+        .limit(1)
+        .execute()
+    )
+    return _first_or_none(res.data)
+
+
+def delete_prescription(prescription_id: str) -> bool:
+    res = (
+        supabase.table("prescriptions")
+        .delete()
+        .eq("id", prescription_id)
+        .execute()
+    )
+    deleted = res.data or []
+    return len(deleted) > 0
+
+
 def set_soap_document_metadata(
     note_id: str,
     clinic_name: str,

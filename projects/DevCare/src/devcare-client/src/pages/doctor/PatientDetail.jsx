@@ -1,4 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { getPatientSessions } from '../../api/rehabApi'
 import { 
   ChevronLeft, 
   Calendar, 
@@ -14,8 +16,17 @@ import {
 
 function PatientDetail() {
   const { id } = useParams()
+  const [sessions, setSessions] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  // Mock data matching the provided mockup
+  useEffect(() => {
+    getPatientSessions(id)
+      .then(data => setSessions(data))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  // Mock data matching the provided mockup for non-session info
   const patient = {
     id,
     name: 'Sarah Chen',
@@ -45,20 +56,22 @@ function PatientDetail() {
       { id: 2, name: 'Heel Slides', details: '2 sets • 10 reps • Slow tempo', icon: '🚶' },
       { id: 3, name: 'Straight Leg Raises', details: '3 sets • 12 reps • No lag', icon: '🦵' }
     ],
-    sessionReport: {
-      exercise_results: [
-        { name: 'Bicep Curl', reps: 5, accuracy: '95%', duration: '60s' },
-        { name: 'Squat', reps: 5, accuracy: '95%', duration: '60s' },
-      ],
-      body_part_scores: [
-        { part: "Knees", score: 96, color: 'bg-emerald-500' },
-        { part: "Arms", score: 92, color: 'bg-blue-500' },
-        { part: "Shoulders", score: 85, color: 'bg-amber-500' },
-        { part: "Hips", score: 78, color: 'bg-orange-500' },
-        { part: "Ankles", score: 75, color: 'bg-slate-500' }
-      ]
-    }
   }
+
+  const latestSession = sessions[0]
+  const sessionReport = latestSession ? {
+    exercise_results: latestSession.results?.map(r => ({
+      name: r.exercise_name,
+      reps: r.reps,
+      accuracy: `${Math.round(r.accuracy || 0)}%`,
+      duration: `${r.duration}s`
+    })) || [],
+    body_part_scores: latestSession.body_part_scores?.map(s => ({
+      part: s.part,
+      score: s.score,
+      color: s.score >= 90 ? 'bg-emerald-500' : s.score >= 80 ? 'bg-blue-500' : 'bg-amber-500'
+    })) || []
+  } : null
 
   return (
     <div className="animate-fade-in pb-12">
@@ -149,50 +162,58 @@ function PatientDetail() {
             </div>
             
             <div className="space-y-8">
-              {/* Exercise Table */}
-              <div className="overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50">
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Exercise</th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Reps</th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Accuracy</th>
-                      <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Duration</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {patient.sessionReport.exercise_results.map((res, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-5 text-sm font-bold text-slate-900">{res.name}</td>
-                        <td className="px-6 py-5 text-sm font-black text-slate-900 text-center">{res.reps}</td>
-                        <td className="px-6 py-5 text-sm font-black text-emerald-600 text-center">{res.accuracy}</td>
-                        <td className="px-6 py-5 text-sm font-bold text-slate-500 text-right">{res.duration}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {loading ? (
+                 <div className="py-12 flex justify-center text-slate-400">Loading Session Data...</div>
+              ) : !sessionReport ? (
+                 <div className="py-12 text-center text-slate-400 font-bold">No session data available for this patient yet.</div>
+              ) : (
+                <>
+                  {/* Exercise Table */}
+                  <div className="overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50">
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Exercise</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Reps</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Accuracy</th>
+                          <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Duration</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {sessionReport.exercise_results.map((res, i) => (
+                          <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-6 py-5 text-sm font-bold text-slate-900">{res.name}</td>
+                            <td className="px-6 py-5 text-sm font-black text-slate-900 text-center">{res.reps}</td>
+                            <td className="px-6 py-5 text-sm font-black text-emerald-600 text-center">{res.accuracy}</td>
+                            <td className="px-6 py-5 text-sm font-bold text-slate-500 text-right">{res.duration}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-              {/* Body Part Scores */}
-              <div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 px-1">Biometric Body Part Scores</h4>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                  {patient.sessionReport.body_part_scores.map((score, i) => (
-                    <div key={i} className="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm">
-                       <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs font-bold text-slate-500">{score.part}</span>
-                          <span className="text-sm font-black text-slate-900">{score.score}</span>
-                       </div>
-                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full ${score.color} transition-all duration-1000`}
-                            style={{ width: `${score.score}%` }}
-                          />
-                       </div>
+                  {/* Body Part Scores */}
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 px-1">Biometric Body Part Scores</h4>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                      {sessionReport.body_part_scores.map((score, i) => (
+                        <div key={i} className="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                          <div className="flex items-center justify-between mb-3">
+                              <span className="text-xs font-bold text-slate-500">{score.part}</span>
+                              <span className="text-sm font-black text-slate-900">{score.score}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${score.color} transition-all duration-1000`}
+                                style={{ width: `${score.score}%` }}
+                              />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </section>
 

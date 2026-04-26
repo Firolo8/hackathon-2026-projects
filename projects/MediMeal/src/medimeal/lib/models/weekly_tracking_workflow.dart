@@ -26,6 +26,6 @@ class WeeklyTrackingWorkflow {
   }
 
   int get remaining => weeklyLimit - usedThisWeek;
-  bool get isNearLimit => remaining <= 10;
-  bool get isExceeded => remaining <= 0;
+  bool get isNearLimit => remaining <= 5 && remaining > 0;
+  bool get isExceeded => usedThisWeek >= weeklyLimit;
 }

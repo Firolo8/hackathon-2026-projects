@@ -12,6 +12,18 @@ class WeeklyTrackingWorkflowService {
     );
   }
 
+  static WeeklyTrackingWorkflow applyMealImpact(
+    WeeklyTrackingWorkflow workflow,
+    int addedScore,
+  ) {
+    final updatedUsed = workflow.usedThisWeek + addedScore;
+
+    return workflow.copyWith(
+      usedThisWeek: updatedUsed,
+      isActive: true,
+    );
+  }
+
   static String buildProgressLabel(WeeklyTrackingWorkflow workflow) {
     return '${workflow.usedThisWeek} / ${workflow.weeklyLimit} used this week';
   }

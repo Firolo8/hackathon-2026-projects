@@ -4,8 +4,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from src.api.jwt_handler import decode_token
 
 # Import routes (Will be enabled as we build them)
-from src.api.routes import auth, symptoms, doctors, appointments, intake
-# from src.api.routes import soap, prescriptions, fhir
+from src.api.routes import auth, symptoms, doctors, appointments, intake, soap, fhir
+# from src.api.routes import prescriptions
 
 app = FastAPI(
     title="CareIT Telehealth API",
@@ -67,4 +67,5 @@ app.include_router(intake.router, prefix="/api/v1/intake", tags=["Intake Forms"]
 app.include_router(doctors.router, prefix="/api/v1/doctors", tags=["Discovery"])
 app.include_router(appointments.router, prefix="/api/v1/appointments", tags=["Booking"])
 app.include_router(soap.router, prefix="/api/v1/soap", tags=["Clinical Documentation"])
+app.include_router(fhir.router, prefix="/api/v1/fhir", tags=["EMR Export"])
 # app.include_router(prescriptions.router, prefix="/api/v1/prescriptions", tags=["Pharmacy"])

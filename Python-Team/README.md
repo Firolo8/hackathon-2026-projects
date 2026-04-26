@@ -50,3 +50,8 @@ By reducing redundancy in the data and learning compact representations, the mod
    ```bash
    python main.py
    ```
+
+
+## Failure Points:
+
+1. Limitations of Raw Pixels: As seen with the earlier 'Raw PCA' and 'Raw NMF' methods, directly applying dimensionality reduction and classification on raw pixel values (16384 features for a 128x128 image) was ineffective. These methods struggled to capture the complex, high-level patterns necessary to distinguish medical conditions like 'Cardiomegaly', resulting in very low sensitivity.

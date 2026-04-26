@@ -13,21 +13,16 @@ class GeminiMealService {
 
   // Keep only models that you can actually use.
   static const List<String> _modelFallbackOrder = [
-    // --- TOP TIER (Your highest quota & latest tech) ---
-    'gemini-3.1-flash-lite-preview', // 500 RPD - Your primary target
-    'gemini-3-flash-preview', // Newer v3 stable-ish
-    'gemini-2.5-flash-lite', // 20 RPD - Use as quick fallback
-    'gemini-2.5-flash', // 20 RPD - Your current default
-
-    // --- STEADY TIER (Aliases that often bypass 404s) ---
-    'gemini-flash-latest', // Points to the most stable Flash version
-    'gemini-2.0-flash', // Older but still supported in many regions
-
-    // --- SAFETY NET TIER (Massive quotas, different architecture) ---
-    'gemma-3-27b-it', // 14.4K RPD - Won't hit 404/503 easily
-    'gemma-4-26b-a4b-it', // 1.5K RPD - Very reliable
-    'gemma-3-12b-it', // 14.4K RPD - Fast
-    'gemma-3-4b-it', // 14.4K RPD - Lightest/Fastest
+    'gemini-3.1-flash-lite-preview',
+    'gemini-3-flash-preview',
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-flash',
+    'gemini-flash-latest',
+    'gemini-2.0-flash',
+    'gemma-3-27b-it',
+    'gemma-4-26b-a4b-it',
+    'gemma-3-12b-it',
+    'gemma-3-4b-it',
   ];
 
   // Total attempts across all models.

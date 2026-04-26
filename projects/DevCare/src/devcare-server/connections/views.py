@@ -79,7 +79,49 @@ class JoinLinkView(APIView):
             patient=request.user
         )
         
+        # Get doctor info
+        doctor_profile = getattr(link.doctor, "profile", None)
+        doctor_name = f"Dr. {link.doctor.first_name} {link.doctor.last_name}".strip()
+        if doctor_name == "Dr.":
+            doctor_name = f"Dr. {link.doctor.username}"
+
+        response_data = {
+            "detail": "Successfully connected with the doctor.",
+            "doctor": {
+                "id": link.doctor.id,
+                "name": doctor_name,
+                "username": link.doctor.username,
+            }
+        }
+        
         if created:
-            return Response({"detail": "Successfully connected with the doctor."}, status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
-            return Response({"detail": "You are already connected with this doctor."}, status=status.HTTP_200_OK)
+            response_data["detail"] = "You are already connected with this doctor."
+            return Response(response_data, status=status.HTTP_200_OK)
+
+
+class ConnectedPatientsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = getattr(request.user, "profile", None)
+        role = getattr(profile, "role", None)
+        if role != UserProfile.ROLE_DOCTOR:
+            return Response(
+                {"detail": "Only doctors can view their connected patients."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        relations = DoctorPatientRelation.objects.filter(doctor=request.user).select_related("patient")
+        patients_data = []
+        for rel in relations:
+            patients_data.append({
+                "id": rel.patient.id,
+                "username": rel.patient.username,
+                "name": f"{rel.patient.first_name} {rel.patient.last_name}".strip() or rel.patient.username,
+                "email": rel.patient.email,
+                "connected_at": rel.created_at,
+            })
+
+        return Response(patients_data, status=status.HTTP_200_OK)

@@ -1,150 +1,119 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Play, CalendarDays, TrendingUp } from 'lucide-react'
-
-
-const USERNAME_KEY = 'devcare_username'
-const ACCESS_TOKEN_KEY = 'devcare_access_token'
-const REFRESH_TOKEN_KEY = 'devcare_refresh_token'
-const ROLE_KEY = 'devcare_role'
+import { ArrowLeft, Play, CalendarDays, ClipboardCheck, Loader2, Info } from 'lucide-react'
+import { getMyPlans } from '../../api/rehabApi'
 
 function MySessionsPage() {
   const navigate = useNavigate()
-  const username = localStorage.getItem(USERNAME_KEY)
+  const [plans, setPlans] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  function handleLogout() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    localStorage.removeItem(USERNAME_KEY)
-    localStorage.removeItem(ROLE_KEY)
-    navigate('/')
-  }
-
-  const sessions = [
-    { 
-      id: 1, 
-      name: 'Quad Strengthening', 
-      doctor: 'Dr. Sarah Johnson', 
-      date: 'Today', 
-      status: 'pending', 
-      difficulty: 'Intermediate',
-      streak: 12,
-      planRange: 'Apr 20 - May 18',
-      completedSessions: 8,
-      totalSessions: 12
-    },
-    { 
-      id: 2, 
-      name: 'Knee Mobility Drills', 
-      doctor: 'Dr. Sarah Johnson', 
-      date: 'Tomorrow', 
-      status: 'pending', 
-      difficulty: 'Beginner',
-      streak: 5,
-      planRange: 'Apr 25 - May 25',
-      completedSessions: 2,
-      totalSessions: 10
-    },
-    { 
-      id: 3, 
-      name: 'Balance & Stability', 
-      doctor: 'Dr. Sarah Johnson', 
-      date: 'Yesterday', 
-      status: 'completed', 
-      difficulty: 'Intermediate',
-      streak: 15,
-      planRange: 'Apr 10 - May 10',
-      completedSessions: 12,
-      totalSessions: 12
-    },
-  ]
+  useEffect(() => {
+    getMyPlans()
+      .then(data => setPlans(data))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pb-12">
       {/* Header */}
       <div className="mb-8 flex items-center gap-4">
-              <button onClick={() => navigate('/dashboard/patient')} className="rounded-lg p-2 hover:bg-[var(--color-surface)]">
-                <ArrowLeft className="h-6 w-6 text-[var(--color-text)]" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-[var(--color-text)]">My Sessions</h1>
-                <p className="text-sm text-[var(--color-text-muted)]">Doctor-assigned plan with date range and streak tracking</p>
-              </div>
-            </div>
+        <button onClick={() => navigate('/dashboard/patient')} className="rounded-lg p-2 hover:bg-[var(--color-surface)]">
+          <ArrowLeft className="h-6 w-6 text-[var(--color-text)]" />
+        </button>
+        <div>
+          <h1 className="text-3xl font-bold text-[var(--color-text)]">My Recovery Sessions</h1>
+          <p className="text-sm text-[var(--color-text-muted)]">View assigned plans and complete your daily roadmap.</p>
+        </div>
+      </div>
 
-            <div className="grid gap-6 md:grid-cols-3 mb-8">
-              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-                <p className="text-xs font-semibold uppercase text-[var(--color-text-muted)]">Plan Range</p>
-                <p className="mt-3 text-2xl font-bold text-[var(--color-primary)]">Apr 20 - May 18</p>
-                <p className="mt-2 text-sm text-[var(--color-text-muted)] flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Doctor assigned</p>
-              </div>
-              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-                <p className="text-xs font-semibold uppercase text-[var(--color-text-muted)]">Current Streak</p>
-                <p className="mt-3 text-4xl font-bold text-[var(--color-accent)]">12 Days</p>
-                <p className="mt-2 text-sm text-[var(--color-text-muted)]">Keep the streak alive</p>
-              </div>
-              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-                <p className="text-xs font-semibold uppercase text-[var(--color-text-muted)]">Weekly Progress</p>
-                <p className="mt-3 text-4xl font-bold text-[var(--color-success)]">4/6</p>
-                <p className="mt-2 text-sm text-[var(--color-text-muted)]">Sessions completed</p>
-              </div>
-            </div>
-
-            {/* Sessions List */}
-            <div className="space-y-4">
-              {sessions.map((session) => (
-                <div key={session.id} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg text-[var(--color-text)]">{session.name}</h3>
-                      <p className="text-sm text-[var(--color-text-muted)] mt-1">Assigned by {session.doctor}</p>
-                      <div className="flex items-center gap-4 mt-3 flex-wrap">
-                        <span className="text-sm text-[var(--color-text-muted)]">{session.date}</span>
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${
-                          session.difficulty === 'Beginner' ? 'border-[var(--color-success)] text-[var(--color-success)] bg-[var(--color-bg)]' :
-                          session.difficulty === 'Intermediate' ? 'border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-bg)]' :
-                          'border-[var(--color-danger)] text-[var(--color-danger)] bg-[var(--color-bg)]'
-                        }`}>{session.difficulty}</span>
-                        <span className="text-xs font-semibold text-[var(--color-primary)] border border-[var(--color-primary)] px-2 py-1 rounded-md flex items-center gap-1 bg-[var(--color-bg)]">
-                          <TrendingUp className="h-3 w-3" /> {session.streak} day streak
-                        </span>
-                        <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
-                          <CalendarDays className="h-3 w-3" /> {session.planRange}
-                        </span>
-                      </div>
-                      
-                      {/* Progress Bar */}
-                      <div className="mt-4 max-w-md">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-[var(--color-text-muted)]">Plan Progress</span>
-                          <span className="font-semibold text-[var(--color-text)]">{session.completedSessions}/{session.totalSessions} sessions</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-[var(--color-border)] rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-[var(--color-success)] rounded-full transition-all duration-500" 
-                            style={{ width: `${(session.completedSessions / session.totalSessions) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+          <Loader2 className="animate-spin" size={40} />
+          <p className="font-bold tracking-widest text-xs uppercase">Syncing your recovery roadmap...</p>
+        </div>
+      ) : plans.length === 0 ? (
+        <div className="rounded-[2.5rem] border-2 border-dashed border-slate-100 bg-slate-50/50 p-12 text-center">
+          <div className="h-16 w-16 rounded-3xl bg-white flex items-center justify-center text-slate-300 mx-auto mb-6 shadow-sm">
+            <Info size={32} />
+          </div>
+          <h3 className="text-xl font-bold text-slate-600">No active plans assigned</h3>
+          <p className="text-slate-400 mt-2 max-w-sm mx-auto font-medium">Your physical therapist hasn't assigned a specific plan yet. Contact your clinic to get started.</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {plans.map((plan) => (
+            <div key={plan.id} className="elevated-card p-0 overflow-hidden border-none shadow-xl bg-white">
+              <div className="flex flex-col lg:flex-row lg:items-stretch">
+                {/* Left Section: Core Info & Exercises */}
+                <div className="flex-1 p-8 lg:border-r border-slate-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-primary)] bg-[var(--color-primary-soft)] px-3 py-1 rounded-full mb-3 inline-block">Active Plan</span>
+                      <h3 className="text-2xl font-black text-slate-800">{plan.name}</h3>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
-                        session.status === 'completed' 
-                          ? 'border-[var(--color-success)] text-[var(--color-success)] bg-[var(--color-bg)]'
-                          : 'border-[var(--color-warning)] text-[var(--color-warning)] bg-[var(--color-bg)]'
-                      }`}>
-                        {session.status === 'completed' ? '✓ Completed' : 'Pending'}
-                      </span>
-                      {session.status === 'pending' && (
-                        <button onClick={() => navigate('/therapy-session')} className="flex items-center gap-2 px-4 py-2 btn-primary text-sm">
-                          <Play className="h-4 w-4" />
-                          Start Therapy
-                        </button>
-                      )}
+                    <div className="flex items-center gap-2 text-slate-400 font-bold text-xs">
+                      <CalendarDays size={16} />
+                      {new Date(plan.created_at).toLocaleDateString()}
                     </div>
                   </div>
+
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                    <div className="h-1 w-4 bg-[var(--color-primary)] rounded-full"></div>
+                    Clinical Exercises
+                  </h4>
+                  
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {plan.exercises && plan.exercises.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-[var(--color-primary)] transition-colors">
+                        <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center font-bold text-slate-400 group-hover:text-[var(--color-primary)] shadow-sm">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-700">{item.exercise?.name || 'Exercise'}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{item.target_reps} Repetitions</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+
+                {/* Right Section: Roadmap Tasks & CTA */}
+                <div className="w-full lg:w-[380px] bg-slate-50/50 p-8 flex flex-col">
+                   <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+                    <ClipboardCheck size={16} className="text-emerald-500" />
+                    Daily Roadmap Tasks
+                  </h4>
+
+                  <div className="flex-1 space-y-3 mb-8">
+                    {plan.tasks && plan.tasks.length > 0 ? (
+                      plan.tasks.map((task, idx) => (
+                        <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
+                           <div className="mt-1 h-2 w-2 rounded-full bg-emerald-400 shrink-0"></div>
+                           <p className="text-xs font-bold text-slate-600 leading-relaxed">{task}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-2xl">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase">No supplemental tasks</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <button 
+                    onClick={() => navigate('/therapy-session', { state: { plan } })}
+                    className="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-blue-100 hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    <Play className="h-5 w-5" />
+                    <span className="font-black uppercase tracking-widest text-sm">Start Session</span>
+                  </button>
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -177,3 +177,44 @@ class PatientStreakView(APIView):
 			"total_days": len(dates)
 		}, status=status.HTTP_200_OK)
 
+
+class PatientPlanListView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		profile = getattr(request.user, "profile", None)
+		if not profile or profile.role != UserProfile.ROLE_PATIENT:
+			return Response({"detail": "Only patients can view their assigned plans."}, status=status.HTTP_403_FORBIDDEN)
+
+		plans = RehabPlan.objects.filter(patient=request.user).prefetch_related("plan_exercises__exercise")
+		serializer = RehabPlanDetailSerializer(plans, many=True)
+		return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MySessionHistoryView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		profile = getattr(request.user, "profile", None)
+		if not profile or profile.role != UserProfile.ROLE_PATIENT:
+			return Response({"detail": "Only patients can view their history."}, status=status.HTTP_403_FORBIDDEN)
+
+		sessions = ExerciseSession.objects.filter(patient=request.user).order_by("-started_at")
+		serializer = ExerciseSessionSerializer(sessions, many=True)
+		return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SessionDetailView(APIView):
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request, session_id):
+		session = get_object_or_404(ExerciseSession, id=session_id)
+		
+		# Check ownership
+		profile = getattr(request.user, "profile", None)
+		if session.patient_id != request.user.id and (not profile or profile.role != UserProfile.ROLE_DOCTOR):
+			return Response({"detail": "You do not have permission to view this session."}, status=status.HTTP_403_FORBIDDEN)
+
+		serializer = ExerciseSessionSerializer(session)
+		return Response(serializer.data, status=status.HTTP_200_OK)
+

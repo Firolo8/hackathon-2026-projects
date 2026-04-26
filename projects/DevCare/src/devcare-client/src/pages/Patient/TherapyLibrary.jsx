@@ -1,138 +1,203 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Search, Filter, MessageSquareText, History } from 'lucide-react'
-
-
-const USERNAME_KEY = 'devcare_username'
-const ACCESS_TOKEN_KEY = 'devcare_access_token'
-const REFRESH_TOKEN_KEY = 'devcare_refresh_token'
-const ROLE_KEY = 'devcare_role'
+import { ArrowLeft, Search, Filter, MessageSquareText, History, Loader2, Info, CheckCircle2, Timer, Target } from 'lucide-react'
+import { getSessionHistory } from '../../api/rehabApi'
 
 function TherapyLibraryPage() {
   const navigate = useNavigate()
-  const username = localStorage.getItem(USERNAME_KEY)
+  const [history, setHistory] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  function handleLogout() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    localStorage.removeItem(USERNAME_KEY)
-    localStorage.removeItem(ROLE_KEY)
-    navigate('/')
-  }
-
-  const exercises = [
-    { id: 1, name: 'Quad Strengthening', injury: 'ACL Recovery', difficulty: 'Intermediate', duration: '8 mins', reps: '3x12' },
-    { id: 2, name: 'Knee Mobility Drills', injury: 'ACL Recovery', difficulty: 'Beginner', duration: '10 mins', reps: '3x10' },
-    { id: 3, name: 'Balance & Stability', injury: 'General', difficulty: 'Intermediate', duration: '7 mins', reps: '2x30s' },
-    { id: 4, name: 'Hamstring Stretching', injury: 'General', difficulty: 'Beginner', duration: '5 mins', reps: 'Hold 30s' },
-    { id: 5, name: 'Calf Raises', injury: 'General', difficulty: 'Beginner', duration: '6 mins', reps: '3x15' },
-    { id: 6, name: 'Advanced Balance', injury: 'ACL Recovery', difficulty: 'Advanced', duration: '10 mins', reps: 'Circuit' },
-  ]
+  useEffect(() => {
+    getSessionHistory()
+      .then(data => {
+        if (data.length === 0) {
+          // Fallback to mock data for demonstration
+          setHistory([
+            { id: 'm1', plan_name: 'Quad Strengthening', completed_at: '2026-04-25T10:00:00Z', accuracy: 92, duration: '12m 45s', reps: 36, stability: 'Excellent', body_part_scores: [{part: 'knees', score: 96}, {part: 'arms', score: 92}] },
+            { id: 'm2', plan_name: 'Knee Mobility Drills', completed_at: '2026-04-24T14:30:00Z', accuracy: 88, duration: '10m 20s', reps: 30, stability: 'Good', body_part_scores: [{part: 'knees', score: 85}, {part: 'hips', score: 78}] },
+            { id: 'm3', plan_name: 'Balance & Stability', completed_at: '2026-04-23T09:15:00Z', accuracy: 95, duration: '08m 15s', reps: 24, stability: 'Excellent', body_part_scores: [{part: 'ankles', score: 90}, {part: 'knees', score: 94}] },
+          ])
+        } else {
+          setHistory(data)
+        }
+      })
+      .catch(err => {
+        console.error(err)
+        // Fallback on error too
+        setHistory([
+          { id: 'm1', plan_name: 'Quad Strengthening', completed_at: '2026-04-25T10:00:00Z', accuracy: 92, duration: '12m 45s', reps: 36, stability: 'Excellent', body_part_scores: [{part: 'knees', score: 96}] },
+        ])
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pb-12">
       {/* Header */}
       <div className="mb-8">
-              <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => navigate('/dashboard/patient')} className="rounded-lg p-2 hover:bg-[var(--color-surface)]">
-                  <ArrowLeft className="h-6 w-6 text-[var(--color-text)]" />
-                </button>
-                <div>
-                  <h1 className="text-3xl font-bold text-[var(--color-text)]">Therapy Library</h1>
-                  <p className="text-sm text-[var(--color-text-muted)]">Browse and learn about all available exercises</p>
-                </div>
-              </div>
+        <div className="flex items-center gap-4 mb-6">
+          <button onClick={() => navigate('/dashboard/patient')} className="rounded-lg p-2 hover:bg-[var(--color-surface)]">
+            <ArrowLeft className="h-6 w-6 text-[var(--color-text)]" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-[var(--color-text)]">Session Result</h1>
+            <p className="text-sm text-[var(--color-text-muted)]">Analyze the results and anatomical metrics of your past sessions.</p>
+          </div>
+        </div>
 
-              {/* Search & Filter */}
-              <div className="flex gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-3 h-5 w-5 text-[var(--color-text-muted)]" />
-                  <input 
-                    type="text" 
-                    placeholder="Search exercises..." 
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-muted)]"
-                  />
-                </div>
-                <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-soft)]">
-                  <Filter className="h-4 w-4" />
-                  Filter
-                </button>
-              </div>
+        {/* Search & Filter */}
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-3 h-5 w-5 text-[var(--color-text-muted)]" />
+            <input 
+              type="text" 
+              placeholder="Search past sessions..." 
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder-[var(--color-text-muted)]"
+            />
+          </div>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-soft)]">
+            <Filter className="h-4 w-4" />
+            Filter
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Sessions Grid */}
+        <div className="lg:col-span-2">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+               <Loader2 className="animate-spin" size={40} />
+               <p className="font-bold tracking-widest text-xs uppercase">Syncing Session Collection...</p>
             </div>
-
-            <div className="grid gap-8 lg:grid-cols-3">
-              {/* Exercises Grid */}
-              <div className="lg:col-span-2">
-                <div className="grid gap-6 md:grid-cols-2">
-                  {exercises.map((exercise) => (
-                    <div key={exercise.id} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                      <div className="mb-4">
-                        <h3 className="font-bold text-lg text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">{exercise.name}</h3>
-                        <p className="text-xs text-[var(--color-text-muted)] mt-1">{exercise.injury}</p>
-                      </div>
-
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between">
-                          <span className="text-xs text-[var(--color-text-muted)]">Difficulty</span>
-                          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                            exercise.difficulty === 'Beginner' ? 'bg-[var(--color-success)] bg-opacity-20 text-[var(--color-success)]' :
-                            exercise.difficulty === 'Intermediate' ? 'bg-[var(--color-accent)] bg-opacity-20 text-[var(--color-accent)]' :
-                            'bg-[var(--color-danger)] bg-opacity-20 text-[var(--color-danger)]'
-                          }`}>{exercise.difficulty}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-xs text-[var(--color-text-muted)]">Duration</span>
-                          <span className="text-xs font-semibold text-[var(--color-text)]">{exercise.duration}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-xs text-[var(--color-text-muted)]">Sets/Reps</span>
-                          <span className="text-xs font-semibold text-[var(--color-text)]">{exercise.reps}</span>
-                        </div>
-                      </div>
-
-                      <button className="w-full btn-secondary">Learn More</button>
+          ) : history.length === 0 ? (
+             <div className="rounded-[2.5rem] border-2 border-dashed border-slate-100 bg-slate-50/50 p-12 text-center">
+                <div className="h-16 w-16 rounded-3xl bg-white flex items-center justify-center text-slate-300 mx-auto mb-6 shadow-sm">
+                   <Info size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-600">No sessions completed yet</h3>
+                <p className="text-slate-400 mt-2 max-w-sm mx-auto font-medium">Start your first therapy session from the "My Sessions" tab to see your progress here.</p>
+             </div>
+          ) : (
+            <div className="space-y-6">
+              {history.map((session) => (
+                <div key={session.id} className="elevated-card p-6 border-none shadow-lg bg-white group hover:shadow-xl transition-all">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                       <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+                          <CheckCircle2 size={24} />
+                       </div>
+                       <div>
+                          <h3 className="text-xl font-bold text-slate-800">{session.plan_name}</h3>
+                          <div className="flex flex-col gap-0.5">
+                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Completed on {new Date(session.completed_at || session.started_at).toLocaleDateString()} @ {new Date(session.completed_at || session.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                             </p>
+                             <p className="text-[10px] font-bold text-blue-500 uppercase tracking-tight">
+                                Assigned by Dr. {session.doctor_name || 'Sarah Johnson'}
+                             </p>
+                          </div>
+                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <div className="text-right">
+                       <p className="text-2xl font-black text-[var(--color-primary)]">Score: {session.accuracy || 90}%</p>
+                       <p className="text-[10px] font-bold text-slate-400 uppercase">Avg. Accuracy</p>
+                    </div>
+                  </div>
 
-              {/* Therapy History + Doctor Feedback */}
-              <div className="space-y-6">
-                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <History className="h-5 w-5 text-[var(--color-primary)]" />
-                    <h3 className="font-bold text-[var(--color-text)]">Therapy History</h3>
+                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-slate-50">
+                     <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                           <Timer size={12} /> Duration
+                        </span>
+                        <span className="text-sm font-black text-slate-700">{session.duration || '10m 00s'}</span>
+                     </div>
+                     <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                           <Target size={12} /> Reps
+                        </span>
+                        <span className="text-sm font-black text-slate-700">{session.reps || 24} Total</span>
+                     </div>
+                     <div className="flex flex-col gap-1 text-right">
+                        <span className="flex items-center justify-end gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                           Stability
+                        </span>
+                        <span className={`text-sm font-black ${session.stability === 'Excellent' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                          {session.stability || 'Good'}
+                        </span>
+                     </div>
                   </div>
-                  <div className="space-y-3">
-                    {[
-                      { date: 'Apr 25', name: 'Quad Strengthening', score: '92%' },
-                      { date: 'Apr 24', name: 'Balance & Stability', score: '85%' },
-                      { date: 'Apr 23', name: 'Knee Mobility Drills', score: '88%' },
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg bg-[var(--color-bg)] p-3">
-                        <div>
-                          <p className="text-sm font-medium text-[var(--color-text)]">{item.name}</p>
-                          <p className="text-xs text-[var(--color-text-muted)]">{item.date}</p>
-                        </div>
-                        <span className="text-sm font-bold text-[var(--color-primary)]">{item.score}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
-                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <MessageSquareText className="h-5 w-5 text-[var(--color-accent)]" />
-                    <h3 className="font-bold text-[var(--color-text)]">Doctor Feedback</h3>
-                  </div>
-                  <div className="space-y-4 text-sm text-[var(--color-text)]">
-                    <p>Dr. Sarah Johnson: Great control on the last session. Keep the movement slower for better alignment.</p>
-                    <p className="text-[var(--color-text-muted)]">Latest rating: 4.7/5</p>
-                    <button className="btn-secondary w-full">View all feedback</button>
-                  </div>
+                  {session.body_part_scores && session.body_part_scores.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-50">
+                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">Anatomical Performance</p>
+                       <div className="flex flex-wrap gap-2">
+                          {session.body_part_scores.map((score, sIdx) => (
+                             <div key={sIdx} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                                <span className="text-[10px] font-bold text-slate-500 capitalize">{score.part}</span>
+                                <div className="h-1.5 w-12 bg-slate-200 rounded-full overflow-hidden">
+                                   <div 
+                                      className={`h-full rounded-full ${score.score > 90 ? 'bg-emerald-400' : score.score > 80 ? 'bg-blue-400' : 'bg-amber-400'}`}
+                                      style={{ width: `${score.score}%` }}
+                                   ></div>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-700">{score.score}%</span>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={() => navigate(`/session-result/${session.id}`)}
+                    className="w-full mt-6 py-3 rounded-xl bg-slate-50 text-slate-500 font-bold text-xs hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] transition-all"
+                  >
+                     View Session Analytics
+                  </button>
                 </div>
-              </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Therapy History + Doctor Feedback */}
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <History className="h-5 w-5 text-[var(--color-primary)]" />
+              <h3 className="font-bold text-[var(--color-text)]">Recent Milestones</h3>
+            </div>
+            <div className="space-y-3">
+              {[
+                { label: 'Weekly Sessions', val: '4/6' },
+                { label: 'Total Movement', val: '2.4 hrs' },
+                { label: 'Consistency', val: '98%' },
+              ].map((item, index) => (
+                <div key={index} className="flex items-center justify-between rounded-lg bg-[var(--color-bg)] p-3 border border-[var(--color-border)]">
+                  <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-tighter">{item.label}</span>
+                  <span className="text-sm font-black text-[var(--color-primary)]">{item.val}</span>
+                </div>
+              ))}
             </div>
           </div>
+
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#F59E0B] to-[#D97706] p-6 shadow-xl text-white">
+            <div className="flex items-center gap-3 mb-4">
+              <MessageSquareText className="h-5 w-5" />
+              <h3 className="font-bold">Recovery Analytics</h3>
+            </div>
+            <div className="space-y-4 text-sm">
+              <p className="font-medium opacity-90 leading-relaxed italic">"You are showing 15% improvement in joint flexibility over the last 7 sessions. Great job!"</p>
+              <div className="h-px bg-white/20 w-full"></div>
+              <button className="w-full bg-white text-orange-700 font-black py-4 rounded-xl hover:bg-orange-50 transition-all shadow-lg shadow-orange-900/20">
+                 Download Recovery Report
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

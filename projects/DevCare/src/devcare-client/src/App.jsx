@@ -18,10 +18,11 @@ import ShareConnection from './pages/doctor/ShareConnection'
 import PatientDashboard from './pages/patient/Dashboard'
 import TherapySession from './pages/patient/TherapySession'
 import TherapyLibrary from './pages/patient/TherapyLibrary'
+import SessionDetail from './pages/patient/SessionDetail'
 import MySessions from './pages/patient/MySessions'
 import Progress from './pages/patient/Progress'
 import Feedback from './pages/patient/Feedback'
-import JoinConnection from './pages/patient/JoinConnection'
+import JoinDoctor from './pages/patient/JoinDoctor'
 
 function App() {
   return (
@@ -29,7 +30,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<AuthPage initialMode="login" />} />
       <Route path="/register" element={<AuthPage initialMode="register" />} />
-      <Route path="/join/:token" element={<JoinConnection />} />
+      <Route path="/join/:token" element={<JoinDoctor />} />
       
       {/* Internal Dashboard Routes */}
       <Route element={<DashboardLayout />}>
@@ -118,10 +119,18 @@ function App() {
           }
         />
         <Route
-          path="/therapy-library"
+          path="/session-result"
           element={
             <ProtectedRoute allowedRoles={['patient']}>
               <TherapyLibrary />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/session-result/:sessionId"
+          element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <SessionDetail />
             </ProtectedRoute>
           }
         />

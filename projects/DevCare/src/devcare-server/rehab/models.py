@@ -29,6 +29,7 @@ class RehabPlan(models.Model):
 		related_name="rehab_plans_assigned",
 	)
 	name = models.CharField(max_length=120)
+	tasks = models.JSONField(default=list, blank=True) # Added for Daily Recovery Roadmap
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:
@@ -71,6 +72,7 @@ class ExerciseSession(models.Model):
 		on_delete=models.CASCADE,
 		related_name="sessions",
 	)
+	body_part_scores = models.JSONField(default=list, blank=True) # From AI module
 	started_at = models.DateTimeField(auto_now_add=True)
 	completed_at = models.DateTimeField(null=True, blank=True)
 

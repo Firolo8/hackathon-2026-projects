@@ -46,3 +46,20 @@ export async function joinDoctor(token) {
   }
   return data // { detail: "Successfully connected..." }
 }
+
+/**
+ * Doctor: Get list of connected patients
+ * GET /api/connections/my-patients/
+ */
+export async function getMyPatients() {
+  const res = await fetch(`${API_BASE}/connections/my-patients/`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  })
+
+  const data = await res.json()
+  if (!res.ok) {
+    throw new Error(data.detail || 'Failed to fetch patients')
+  }
+  return data // [{ id, name, username, email, connected_at }, ...]
+}

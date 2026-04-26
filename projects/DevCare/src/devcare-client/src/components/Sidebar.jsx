@@ -40,8 +40,8 @@ function Sidebar() {
 
   const patientLinks = [
     { label: 'My Dashboard', href: '/dashboard/patient', icon: LayoutDashboard },
-    { label: 'Therapy Library', href: '/therapy-library', icon: BookOpen },
     { label: 'My Sessions', href: '/my-sessions', icon: CalendarDays },
+    { label: 'Session Result', href: '/session-result', icon: BookOpen },
     { label: 'Recovery Progress', href: '/progress', icon: Activity },
     { label: 'Session Feedback', href: '/feedback', icon: MessageCircle },
   ]

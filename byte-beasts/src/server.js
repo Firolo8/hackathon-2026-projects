@@ -3,7 +3,7 @@ const express = require('express');
 
 const app = express();
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(__dirname));
 
 const HF_API_URL = 'https://router.huggingface.co/v1/chat/completions';
 const HF_MODEL = 'Qwen/Qwen2.5-72B-Instruct';

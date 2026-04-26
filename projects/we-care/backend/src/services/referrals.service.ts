@@ -75,7 +75,7 @@ export async function createPatientAndReferral(
     medical_history?: string;
   },
   referralData: {
-    referred_by?: string;
+    doctor_id: string;
     clinical_notes: string;
     extracted_data?: object;
     diagnosis?: string;
@@ -96,7 +96,16 @@ export async function createPatientAndReferral(
 
   const { data: referral, error: referralError } = await supabase
     .from("referrals")
-    .insert({ doctor_id: doctorId, patient_id: patient.id, referred_by: referralData.referred_by, ...referralData })
+    .insert({
+      doctor_id: referralData.doctor_id,
+      referred_by: doctorId,
+      patient_id: patient.id,
+      clinical_notes: referralData.clinical_notes,
+      extracted_data: referralData.extracted_data,
+      diagnosis: referralData.diagnosis,
+      required_specialty: referralData.required_specialty,
+      urgency: referralData.urgency,
+    })
     .select()
     .single();
 
@@ -117,14 +126,7 @@ export async function getReferralsByDoctor(
     .select(
       `
       id, doctor_id, referred_by, clinical_notes, diagnosis, urgency, status, created_at, required_specialty,
-      patients (id, full_name),
-      specialist:doctors!referrals_referred_by_fkey (
-        id,
-        full_name,
-        contact_number,
-        specialties(name),
-        hospitals(name)
-      )
+      patients (id, full_name)
     `,
       { count: "exact" },
     )
@@ -182,11 +184,6 @@ export async function getReferralById(referralId: string, doctorId: string) {
       `
       *,
       patients (*),
-      specialist:doctors!referrals_referred_by_fkey (
-        *,
-        specialties(name),
-        hospitals(name)
-      ),
       referral_status_history (status, changed_at),
       appointments (id, preferred_date, time_slot, status, notes)
     `,

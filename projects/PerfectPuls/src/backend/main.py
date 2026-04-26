@@ -7,6 +7,7 @@ import logging
 import os
 import uuid
 from pathlib import Path
+from fastapi.responses import HTMLResponse
 
 # Local imports
 from models.api_models import (
@@ -160,6 +161,23 @@ async def process_pdf(
         if temp_path and temp_path.exists():
             os.remove(temp_path)
             logger.info(f"Cleaned up temp file: {temp_path}")
+
+@app.get("/api/visualize-current-policy", response_class=HTMLResponse)
+async def visualize_current_policy():
+    """
+    Automatically serves the interactive graph for the latest policy.
+    """
+    try:
+        # Get the latest ID on the fly
+        policy_id = await neo4j_service.get_latest_policy_id()
+        
+        if not policy_id:
+            return HTMLResponse("<h3>No policies found. Upload a PDF to see the graph!</h3>")
+            
+        html_content = await neo4j_service.generate_interactive_graph(policy_id)
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        return HTMLResponse(content=f"<h3>Error: {str(e)}</h3>", status_code=500)
 
 @app.post("/api/analyze", response_model=AnalyzeResponse)
 async def analyze_website(request: AnalyzeRequest):

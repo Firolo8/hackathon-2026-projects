@@ -10,7 +10,10 @@ logger = logging.getLogger(__name__)
 class RAGService:
     async def analyze_website(self, basic_info: Dict[str, Any], page_content: str) -> AnalyzeResponse:
         domain = basic_info.get("domain", "the website")
-        policy_id = "168c1db7-a1ba-4b11-bc5a-93ccbbb9307b" # Your Cigna Policy ID
+        policy_id = await neo4j_service.get_latest_policy_id()
+        
+        if not policy_id:
+            return self._get_default_response("No insurance policies found in the database. Please upload a PDF first.") # Your Cigna Policy ID
         
         # 1. Extract the Service Intent
         intent = await self._get_intent(page_content)

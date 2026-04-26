@@ -3,6 +3,7 @@ import asyncio
 from typing import Dict, List, Any, Optional
 from neo4j import AsyncGraphDatabase
 from config.settings import settings
+from pyvis.network import Network
 from services.gemini_service import gemini_service # Import our cloud-based service
 
 # Configure logging
@@ -120,6 +121,76 @@ class Neo4jService:
         SET p.name = $name, p.updated_at = datetime()
         """
         await session.run(query, {"policy_id": policy_id, "name": metadata.get("policy_name")})
+
+    async def get_latest_policy_id(self) -> str:
+        """
+        Finds the UUID of the most recently ingested policy.
+        """
+        query = """
+        MATCH (p:Policy)
+        RETURN p.policy_id AS id
+        ORDER BY p.processed_at DESC
+        LIMIT 1
+        """
+        async with self.driver.session() as session:
+            result = await session.run(query)
+            record = await result.single()
+            if record:
+                return record["id"]
+            return None
+
+    # services/neo4j_service.py
+
+    async def generate_interactive_graph(self, policy_id: str) -> str:
+        """
+        Generates a 'Clean White' interactive HTML graph.
+        """
+        query = """
+        MATCH (s:Service {policy_id: $policy_id})
+        OPTIONAL MATCH (s)-[r:SUBJECT_TO|HAS_LIMIT]->(req:Requirement)
+        RETURN s, r, req
+        """
+        
+        async with self.driver.session() as session:
+            result = await session.run(query, {"policy_id": policy_id})
+            records = [dict(record) async for record in result]
+
+        # 1. Initialize with White Background and Dark Text
+        # bgcolor="#ffffff", font_color="#333333" (Dark Gray)
+        net = Network(height="600px", width="100%", bgcolor="#ffffff", font_color="#333333")
+        
+        for rec in records:
+            s = rec['s']
+            req = rec['req']
+            rel = rec['r']
+
+            # 2. Service Node: Darker Green for better contrast on white
+            net.add_node(s.element_id, label=s['name'], title=s['description'], color="#27ae60")
+            
+            if req:
+                # 3. Requirement Node: Amber/Orange for high visibility
+                net.add_node(req.element_id, label=req['name'], title=req['description'], color="#e67e22")
+                
+                # 4. Edge: Use a dark slate color so the lines are crisp
+                edge_label = rel['value'] if rel and 'value' in rel else ""
+                net.add_edge(s.element_id, req.element_id, label=edge_label, color="#34495e")
+
+        # Optional: Fine-tune physics for a smoother "float"
+        net.set_options("""
+        var options = {
+        "physics": {
+            "forceAtlas2Based": {
+            "gravitationalConstant": -50,
+            "centralGravity": 0.01,
+            "springLength": 100
+            },
+            "minVelocity": 0.75,
+            "solver": "forceAtlas2Based"
+        }
+        }
+        """)
+        
+        return net.generate_html()
 
     async def close(self):
         if self.driver:

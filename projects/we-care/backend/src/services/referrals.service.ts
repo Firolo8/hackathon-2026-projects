@@ -1,3 +1,4 @@
+import { HttpError } from "../lib/http-error";
 import { supabase } from "../lib/supabase";
 import { randomUUID } from 'crypto';
 import { sendPatientPortalEmail } from './email.service';
@@ -16,6 +17,20 @@ interface DoctorDirectoryRow {
   contact_number: string | null;
   specialties: { name: string } | Array<{ name: string }> | null;
   hospitals: { name: string } | Array<{ name: string }> | null;
+}
+
+interface AppointmentRow {
+  id: string;
+  preferred_date: string;
+  time_slot: "morning" | "afternoon" | "evening";
+  status: "requested" | "confirmed" | "cancelled";
+  notes: string | null;
+}
+
+function generateMrn() {
+  const timestamp = Date.now().toString().slice(-8);
+  const suffix = randomUUID().replace(/-/g, "").slice(0, 4).toUpperCase();
+  return `MRN-${timestamp}-${suffix}`;
 }
 
 async function getDoctorsByIds(doctorIds: string[]) {
@@ -51,6 +66,7 @@ async function getDoctorsByIds(doctorIds: string[]) {
 export async function createPatientAndReferral(
   doctorId: string,
   patientData: {
+    mrn?: string;
     full_name: string;
     date_of_birth?: string;
     gender?: string;
@@ -69,7 +85,10 @@ export async function createPatientAndReferral(
 ) {
   const { data: patient, error: patientError } = await supabase
     .from("patients")
-    .insert(patientData)
+    .insert({
+      ...patientData,
+      mrn: patientData.mrn?.trim() || generateMrn(),
+    })
     .select()
     .single();
 
@@ -168,20 +187,26 @@ export async function getReferralById(referralId: string, doctorId: string) {
         specialties(name),
         hospitals(name)
       ),
-      referral_status_history (status, changed_at)
+      referral_status_history (status, changed_at),
+      appointments (id, preferred_date, time_slot, status, notes)
     `,
     )
     .eq("id", referralId)
-    .eq("doctor_id", doctorId)
+    .or(`doctor_id.eq.${doctorId},referred_by.eq.${doctorId}`)
     .single();
 
   if (error) throw new Error(error.message);
-  const doctorMap = await getDoctorsByIds([data.doctor_id]);
+  const doctorMap = await getDoctorsByIds([data.doctor_id, data.referred_by]);
   const targetDoctor = doctorMap.get(data.doctor_id) ?? null;
+  const referredByDoctor = doctorMap.get(data.referred_by) ?? null;
+  const appointmentsRaw = data.appointments as AppointmentRow[] | AppointmentRow | null;
+  const appointment = Array.isArray(appointmentsRaw) ? (appointmentsRaw[0] ?? null) : appointmentsRaw;
 
   return {
     ...data,
     targetDoctor,
+    referredByDoctor,
+    appointment,
   };
 }
 
@@ -190,15 +215,43 @@ export async function updateReferralStatus(
   doctorId: string,
   status: "pending" | "sent" | "accepted" | "completed",
 ) {
+  const { data: existingReferral, error: existingReferralError } = await supabase
+    .from("referrals")
+    .select("id, doctor_id, referred_by, status")
+    .eq("id", referralId)
+    .single();
+
+  if (existingReferralError) {
+    if (existingReferralError.code === "PGRST116") {
+      throw new HttpError(404, "Referral not found");
+    }
+
+    throw new HttpError(500, existingReferralError.message);
+  }
+
+  const isReferrer = existingReferral.referred_by === doctorId;
+  const isTargetDoctor = existingReferral.doctor_id === doctorId;
+  const canSendReferral = status === "sent" && isReferrer;
+  const canManageReceivedReferral =
+    (status === "accepted" || status === "completed") && isTargetDoctor;
+
+  if (!canSendReferral && !canManageReceivedReferral) {
+    throw new HttpError(
+      403,
+      status === "sent"
+        ? "Only the referring doctor can send this referral"
+        : "Only the target doctor can update referral status",
+    );
+  }
+
   const { data, error } = await supabase
     .from("referrals")
     .update({ status })
     .eq("id", referralId)
-    .eq("doctor_id", doctorId)
     .select()
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) throw new HttpError(500, error.message);
 
   if (status === 'sent') {
     const { data: referral } = await supabase
@@ -207,7 +260,10 @@ export async function updateReferralStatus(
       .eq('id', referralId)
       .single();
 
-    const patientsRaw = referral?.patients as unknown as { full_name: string; email?: string } | { full_name: string; email?: string }[] | null;
+    const patientsRaw = referral?.patients as unknown as
+      | { full_name: string; email?: string }
+      | { full_name: string; email?: string }[]
+      | null;
     const patient = Array.isArray(patientsRaw) ? patientsRaw[0] : patientsRaw;
 
     const token = randomUUID();
@@ -229,4 +285,45 @@ export async function updateReferralStatus(
   }
 
   return data;
+}
+
+export async function updateAppointmentStatus(
+  referralId: string,
+  doctorId: string,
+  status: "confirmed" | "cancelled",
+) {
+  const { data: referral, error: referralError } = await supabase
+    .from("referrals")
+    .select("id, doctor_id")
+    .eq("id", referralId)
+    .single();
+
+  if (referralError) {
+    if (referralError.code === "PGRST116") {
+      throw new HttpError(404, "Referral not found");
+    }
+
+    throw new HttpError(500, referralError.message);
+  }
+
+  if (referral.doctor_id !== doctorId) {
+    throw new HttpError(403, "Only the target doctor can update appointment status");
+  }
+
+  const { data: appointment, error: appointmentError } = await supabase
+    .from("appointments")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("referral_id", referralId)
+    .select("id, preferred_date, time_slot, status, notes")
+    .single();
+
+  if (appointmentError) {
+    if (appointmentError.code === "PGRST116") {
+      throw new HttpError(404, "Appointment not found");
+    }
+
+    throw new HttpError(500, appointmentError.message);
+  }
+
+  return appointment;
 }

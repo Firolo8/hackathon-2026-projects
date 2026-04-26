@@ -8,7 +8,11 @@ import { PatientInfoCard } from '../components/referrals/PatientInfoCard'
 import { ReferralSummaryCard } from '../components/referrals/ReferralSummaryCard'
 import { StatusTimeline } from '../components/referrals/StatusTimeline'
 import { Button } from '../components/ui/Button'
-import { getReferral, updateReferralStatus } from '../lib/referral-api'
+import {
+  getReferral,
+  updateReferralAppointmentStatus,
+  updateReferralStatus,
+} from '../lib/referral-api'
 import { useAuthStore } from '../stores/authStore'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -49,6 +53,25 @@ function toInitials(name: string) {
   return name.replace(/^Dr\.\s*/i, '').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
+function formatDate(value: string | null | undefined) {
+  if (!value) return 'N/A'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function formatTimeSlot(timeSlot: 'morning' | 'afternoon' | 'evening') {
+  if (timeSlot === 'morning') return 'Morning'
+  if (timeSlot === 'afternoon') return 'Afternoon'
+  return 'Evening'
+}
+
 export default function ReferralDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -77,6 +100,14 @@ export default function ReferralDetailPage() {
     },
   })
 
+  const appointmentMutation = useMutation({
+    mutationFn: (status: 'confirmed' | 'cancelled') =>
+      updateReferralAppointmentStatus(id!, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referral', id] })
+    },
+  })
+
   function copyLink() {
     if (!portalToken) return
     navigator.clipboard.writeText(`${window.location.origin}/p/${portalToken}`)
@@ -99,9 +130,16 @@ export default function ReferralDetailPage() {
   })
 
   const patient = referral.patients
-  const specialist = referral.specialist
-  const specialistName = specialist?.full_name ?? 'Unassigned'
-  const specialistHospital = specialist?.hospital ?? 'N/A'
+  const targetDoctor = referral.targetDoctor
+  const referredByDoctor = referral.referredByDoctor
+  const isTargetDoctor = doctor?.id === referral.doctor_id
+  const isReferrer = doctor?.id === referral.referred_by
+  const canSendReferral = isReferrer && referral.status === 'pending'
+  const availableNextStatuses = isTargetDoctor
+    ? nextStatuses.filter((status) => status !== 'sent')
+    : []
+  const canManageAppointment =
+    isTargetDoctor && referral.appointment?.status === 'requested'
 
   const timeline = [...referral.referral_status_history]
     .sort((a, b) => new Date(b.changed_at).getTime() - new Date(a.changed_at).getTime())
@@ -139,13 +177,18 @@ export default function ReferralDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {referral.status === 'sent' && (
-            <Button variant="ghost" size="sm" onClick={() => setPortalToken(portalToken)}>
+          {canSendReferral && (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={mutation.isPending}
+              onClick={() => mutation.mutate('sent')}
+            >
               <Send size={14} />
-              Get Portal Link
+              {mutation.isPending ? 'Sending…' : 'Send Referral'}
             </Button>
           )}
-          {nextStatuses.length > 0 && (
+          {availableNextStatuses.length > 0 && (
             <div className="flex items-center gap-1">
               <select
                 value={selectedStatus}
@@ -153,7 +196,7 @@ export default function ReferralDetailPage() {
                 className="rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-primary focus:outline-none"
               >
                 <option value="">Select status…</option>
-                {nextStatuses.map((s) => (
+                {availableNextStatuses.map((s) => (
                   <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                 ))}
               </select>
@@ -196,10 +239,9 @@ export default function ReferralDetailPage() {
           <PatientInfoCard
             patient={{
               fullName: patient.full_name,
-              dob: patient.date_of_birth ?? 'N/A',
+              dob: formatDate(patient.date_of_birth),
               mrn: patient.mrn ?? 'N/A',
               contact: patient.phone ?? patient.email ?? 'N/A',
-              insurance: 'N/A',
             }}
           />
           <ClinicalNoteCard note={referral.clinical_notes} />
@@ -210,22 +252,45 @@ export default function ReferralDetailPage() {
           <ReferralSummaryCard
             icdCode="N/A"
             diagnosis={referral.diagnosis ?? 'N/A'}
-            referredToName={specialistName}
-            referredToInitials={toInitials(specialistName)}
-            referredToOrg={specialistHospital}
+            referredToName={specialist.full_name}
+            referredToInitials={toInitials(specialist.full_name)}
+            referredToOrg={specialist.hospital}
             referredBy={doctor?.full_name ? `Dr. ${doctor.full_name}` : 'N/A'}
           />
-          {referral.status === 'accepted' || referral.status === 'completed' ? (
+          {referral.appointment ? (
             <AppointmentCard
               appointment={{
-                month: new Date().toLocaleString('en-US', { month: 'short' }).toUpperCase(),
-                day: String(new Date().getDate()),
+                status: referral.appointment.status,
+                month: new Date(referral.appointment.preferred_date).toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+                day: new Date(referral.appointment.preferred_date).toLocaleString('en-US', { day: '2-digit' }),
                 type: 'Initial Consultation',
-                time: 'TBD',
-                location: specialistHospital,
+                time: formatTimeSlot(referral.appointment.time_slot),
+                location: targetDoctor?.hospital ?? 'Location unavailable',
+                notes: referral.appointment.notes,
               }}
+              actions={canManageAppointment ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={appointmentMutation.isPending}
+                    onClick={() => appointmentMutation.mutate('cancelled')}
+                  >
+                    {appointmentMutation.isPending ? 'Updating…' : 'Deny'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={appointmentMutation.isPending}
+                    onClick={() => appointmentMutation.mutate('confirmed')}
+                  >
+                    {appointmentMutation.isPending ? 'Updating…' : 'Confirm'}
+                  </Button>
+                </>
+              ) : null}
             />
-          ) : null}
+          ) : (
+            <AppointmentCard appointment={null} />
+          )}
           <StatusTimeline events={timeline} />
         </div>
       </div>

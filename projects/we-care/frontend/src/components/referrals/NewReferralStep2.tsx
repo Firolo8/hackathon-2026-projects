@@ -5,12 +5,12 @@ import { Button } from '../ui/Button'
 import type { ExtractedData } from '../../types/referral'
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say']
-const SPECIALTY_OPTIONS = ['Cardiology', 'Neurology', 'Orthopedics', 'Dermatology', 'Gastroenterology']
 const URGENCY_OPTIONS = ['Routine', 'Elevated', 'Urgent']
 
 interface NewReferralStep2Props {
   clinicalNote: string
   extracted: ExtractedData
+  specialtyOptions: string[]
   onBack: () => void
   onConfirm: (data: ExtractedData) => void
 }
@@ -27,8 +27,15 @@ function AiLabel({ children }: { children: ReactNode }) {
 const inputCls = 'w-full rounded-lg border-2 border-ai/40 bg-surface px-3 py-2 text-sm text-primary focus:outline-none focus:border-ai'
 const selectCls = `${inputCls} appearance-none cursor-pointer`
 
-export function NewReferralStep2({ clinicalNote, extracted, onBack, onConfirm }: NewReferralStep2Props) {
+export function NewReferralStep2({
+  clinicalNote,
+  extracted,
+  specialtyOptions,
+  onBack,
+  onConfirm,
+}: NewReferralStep2Props) {
   const [data, setData] = useState<ExtractedData>(extracted)
+  const isEmailValid = data.email.trim().length > 0
 
   function update(field: keyof ExtractedData, value: string) {
     setData((prev) => ({ ...prev, [field]: value }))
@@ -77,7 +84,15 @@ export function NewReferralStep2({ clinicalNote, extracted, onBack, onConfirm }:
               </div>
               <div>
                 <AiLabel>Email</AiLabel>
-                <input className={inputCls} value={data.email} onChange={(e) => update('email', e.target.value)} />
+                <input
+                  type="email"
+                  className={inputCls}
+                  value={data.email}
+                  onChange={(e) => update('email', e.target.value)}
+                />
+                {!isEmailValid ? (
+                  <p className="mt-1 text-xs text-red-600">Email is required to send the referral portal link.</p>
+                ) : null}
               </div>
             </div>
 
@@ -90,8 +105,16 @@ export function NewReferralStep2({ clinicalNote, extracted, onBack, onConfirm }:
 
             <div>
               <AiLabel>Required Specialty</AiLabel>
-              <select className={selectCls} value={data.requiredSpecialty} onChange={(e) => update('requiredSpecialty', e.target.value)}>
-                {SPECIALTY_OPTIONS.map((o) => <option key={o}>{o}</option>)}
+              <select
+                className={selectCls}
+                value={data.requiredSpecialty}
+                onChange={(e) => update('requiredSpecialty', e.target.value)}
+              >
+                {specialtyOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -125,7 +148,7 @@ export function NewReferralStep2({ clinicalNote, extracted, onBack, onConfirm }:
 
       <div className="flex items-center justify-end gap-3">
         <Button variant="ghost" onClick={onBack}>Back</Button>
-        <Button onClick={() => onConfirm(data)}>
+        <Button disabled={!isEmailValid} onClick={() => onConfirm(data)}>
           Confirm and Continue →
         </Button>
       </div>

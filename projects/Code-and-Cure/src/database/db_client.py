@@ -248,10 +248,10 @@ def get_soap_note(note_id: str) -> dict | None:
     return _first_or_none(res.data)
 
 
-def insert_fhir_record(soap_note_id: str, fhir_json: dict) -> dict:
+def insert_fhir_record(soap_note_id: str, fhir_json: dict, resource_type: str = "Bundle") -> dict:
     res = (
         supabase.table("fhir_records")
-        .insert({"soap_note_id": soap_note_id, "fhir_json": fhir_json})
+        .insert({"soap_note_id": soap_note_id, "resource_type": resource_type, "fhir_json": fhir_json})
         .execute()
     )
     return _first_or_none(res.data) or {}

@@ -1,26 +1,17 @@
 AI.md
 context.md
-HEAD
-.env
 questions.md
 biggerscope.md
-__pycache__/
-*.pyc
 teammate.md
-<<<<<<< HEAD
-plan.md 
-
-=======
 plan.md
->>>>>>> Prajan
 
-AI.md
-context.md
 .cursorrules
-.env
-.env.local
-.env.*.local
 refs/rewritten/origin-Eric-2
 
+__pycache__/
+*.pyc
+.pytest_cache/
+
+.env
 .env.local
 .env.*.local

@@ -1,152 +1,78 @@
-# CareDevi AI Innovation Hackathon 2026
+# Project Name
 
-**April 25, 8:00 AM – April 26, 8:00 PM CDT**
-*(April 25, 6:45 PM – April 27, 6:45 AM NPT)*
+CausalCare AI: Root-Cause Health Intelligence Engine
 
-Build impactful AI-driven solutions for real-world healthcare challenges. Scope tightly, ship working software, and document as you go.
+## Team Members (names + GitHub handles)
 
----
+- Mikesh Thapa (@eMpTy-intellect)
+- Aryan Dhakal (@AryanDhakal)
+- Prasanga Ghimire (@prasanga14)
 
-## Schedule & Deadlines
+## Problem Statement
 
-All times are **Central Daylight Time (CDT)**. NPT = CDT + 10:45.
+Existing health AI tools tell users WHAT disease they may have, but never explain WHY — leaving patients confused and unable to take action.
 
-> ⚠️ Missing the Saturday 8:30 AM check-in makes your team **ineligible for prizes**. The 4:00 PM Sunday cutoff has **no extensions**.
+- No Lifestyle Context: Current symptom checkers ignore critical lifestyle factors like smoking, sleep deprivation, and pollution exposure that significantly alter disease risk.
 
-| Event | CDT | NPT |
-|---|---|---|
-| Check-in opens — post in #hackathon-demo-day | Sat Apr 25 · 7:15 AM | Sat Apr 25 · 6:00 PM |
-| Post check-in by this time | Sat Apr 25 · 8:15 AM | Sat Apr 25 · 7:00 PM |
-| **Check-in closes — late = ineligible** | **Sat Apr 25 · 8:30 AM** | **Sat Apr 25 · 7:15 PM** |
-| Opening session (overview, logistics, scoring, Q&A) | Sat Apr 25 · 8:45 AM | Sat Apr 25 · 7:30 PM |
-| Mentor breakout sessions | Sat Apr 25 · 8:45 AM | Sat Apr 25 · 7:30 PM |
-| **GitHub repo must be created** | **Sat Apr 25 · 9:30 AM** | **Sat Apr 25 · 8:15 PM** |
-| Hacking begins | Sat Apr 25 · 9:45 AM | Sat Apr 25 · 8:30 PM |
-| **Milestone commits window** | **Sat Apr 25 · 4:00–6:00 PM** | **Sun Apr 26 · 2:45–4:45 AM** |
-| Morning mentor check-in via Slack | Sun Apr 26 · 9:00–10:00 AM | Sun Apr 26 · 7:45–8:45 PM |
-| Set alarm — begin final packaging | Sun Apr 26 · 3:00 PM | Mon Apr 27 · 1:45 AM |
-| **HARD CUTOFF — no extensions** | **Sun Apr 26 · 4:00 PM** | **Mon Apr 27 · 2:45 AM** |
-| Demo presentations (3 min + 2 min Q&A) | Sun Apr 26 · 4:45 PM | Mon Apr 27 · 3:30 AM |
-| Awards ceremony & guest speaker | Sun Apr 26 · 6:00–7:00 PM | Mon Apr 27 · 4:45–5:45 AM |
+- Generic Recommendations: One-size-fits-all advice fails patients. A smoker with pneumonia needs different guidance than a non-smoker with the same condition.
 
----
+- No "What-If" Scenarios: Patients cannot explore how changing their habits would reduce their risk — there is no tool for preventive decision-making.
 
-## Required Deliverables
+## Solution Description
 
-All four items are mandatory. Missing any one disqualifies your submission.
+CausalCare AI is an explainable health risk guidance system that combines machine learning with a transparent risk adjustment layer.
 
-| Deliverable | Requirements |
-|---|---|
-| **GitHub Repo** | Frequent, meaningful commits throughout the weekend. Commit history is tracked and scored. |
-| **README** | Problem, approach, architecture, data sources, limitations, setup instructions, team credits. |
-| **3-Min Demo** | Live or recorded. Show the user flow. Minimal slides — focus on the working product. 2-min Q&A follows. |
-| **Responsible AI Doc** | Data sources, model choices, bias considerations, failure cases. Required for all teams. |
+How it works:
 
----
+1. User selects symptoms and lifestyle factors (smoking, sleep, pollution).
+2. ML model predicts the most likely disease and base confidence.
+3. Risk engine adjusts risk based on disease-specific lifestyle sensitivities.
+4. App returns:
+   - disease prediction,
+   - base and adjusted risk,
+   - key contributing factors,
+   - personalized recommendations,
+   - what-if simulation scenarios (for example, quit smoking, improve sleep).
+5. Prediction and simulation history are saved for demo analytics.
 
-## Scoring
+This project is decision support and educational guidance, not a medical diagnosis system.
 
-### Mentor Feedback — 20%
+## Tech Stack
 
-| Criterion | Weight |
-|---|---|
-| Milestone check-ins | 5% |
-| Commit history (consistent progress) | 5% |
-| Teamwork (Solo Participants not eligible for this marks) | 5% |
-| Responsible AI & design doc | 5% |
+- Frontend: React, Tailwind CSS, Axios
+- Backend: FastAPI, Uvicorn, Pydantic
+- ML: scikit-learn (RandomForestClassifier), pandas, numpy, joblib
+- Data: Training.csv, Testing.csv, symptoms.json
+- Database: SQLite (local file: src/database/causalcare.db)
 
-### Judge Feedback — 80%
+## Setup Instructions
 
-| Criterion | Weight | What judges look for |
-|---|---|---|
-| **Real-World Impact** | 25% | Clinical relevance, addresses actual healthcare pain points, potential to improve patient outcomes |
-| **Technical Innovation** | 15% | Novel use of AI/ML, architecture quality, scalability |
-| **User Experience** | 15% | Usability for clinicians/patients, workflow integration, accessibility, data handling |
-| **Presentation** | 10% | Clarity of pitch, demo quality, team communication |
-| **Feasibility** | 5% | Implementation realism, integration with existing systems, regulatory awareness |
+Run from the src folder.
 
----
+### Windows
 
-## Project Repository Structure
+1. Run setup.bat
+2. Start backend:
+   - cd backend
+   - python main.py
+3. In a new terminal, start frontend:
+   - cd frontend
+   - npm start
+4. Open http://localhost:3000
 
-Use the [hackathon template repo](https://github.com/caredevi-innovation-lab/hackathon-2026-projects) and create your project under `projects/`:
+### macOS/Linux
 
-```
-projects/
-└── your-team-name/
-    ├── README.md            # Problem, approach, architecture, data sources, limitations, setup, team credits
-    ├── responsible-ai.md    # Data sources, model choices, bias considerations, failure cases
-    ├── src/                 # Source code — commit early and often
-    └── demo/                # Demo video or screenshots
-```
+1. Run setup.sh
+2. Start backend:
+   - cd backend
+   - python main.py
+3. In a new terminal, start frontend:
+   - cd frontend
+   - npm start
+4. Open http://localhost:3000
 
----
+Backend API docs: http://localhost:8000/docs
 
-## Submission Instructions
+## Demo Link Or Screenshots
 
-### 1. Use this Repository Template
-
-Click the **Fork** button at the top-right of this page to create your own copy of this repository under your GitHub account.
-
-### 2. Create a Project Directory
-
-In your forked repository, create a new directory for your project inside the `projects/` folder:
-
-```
-projects/
-└── your-team-name/
-    ├── README.md            # Project description (required)
-    ├── responsible-ai.md    # Required for all teams
-    ├── src/                 # Your source code
-    └── demo/                # Demo video or screenshots
-```
-
-### 3. Add a Project README
-
-Your project `README.md` must include:
-
-- **Project Name**
-- **Team Members** (names and GitHub handles)
-- **Problem Statement** – What problem are you solving?
-- **Solution** – Describe your solution and how it works.
-- **Tech Stack** – Technologies, frameworks, and tools used.
-- **Setup Instructions** – How to run your project locally.
-- **Demo** – Link to a demo video, live deployment, or screenshots.
-
-### 4. Submit a Pull Request
-
-1. Commit and push all your changes to your forked repository.
-2. Navigate to the original repository (`caredevi-innovation-lab/hackathon-2026-projects`).
-3. Click **New Pull Request** and select your fork and branch as the source.
-4. Use the following title format:
-   ```
-   [Submission] Your Team Name – Project Name
-   ```
-5. In the PR description, briefly describe your project and link to your project's `README.md`.
-6. Submit before the hard deadline: **April 26, 2026 at 4:00 PM CDT (April 27, 2026 at 2:45 AM NPT)**.
-
-> ⚠️ Changes pushed after the deadline will not be counted. No extensions.
-
----
-
-## Rules
-
-- GitHub repo must be created by **9:30 AM CDT Saturday** (set up during the 8:45 AM mentor breakout)
-- Milestone commits required during **4:00–6:00 PM CDT Saturday**
-- All four deliverables must be submitted before the **4:00 PM CDT Sunday hard cutoff**
-- A polished small project beats a broken ambitious one — scope tightly
-
----
-
-## Support Channels
-
-| Channel | Purpose |
-|---|---|
-| `#hackathon-help-support` | Technical support & questions |
-| `#hackathon-demo-day` | Official announcements & check-ins |
-| `#hackathon-team-formation` | Find teammates |
-| `#general` | Introductions & general conversation |
-
----
-
-Questions? **#hackathon-help-support** · Email: hackathon@caredevi.com
+- Demo video link: https://www.youtube.com/watch?v=ObrtXRB_u_g

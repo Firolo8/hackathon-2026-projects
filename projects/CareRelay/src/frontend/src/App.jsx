@@ -4,27 +4,46 @@ import {
   AlertTriangle,
   BadgeCheck,
   Bot,
+  ChevronDown,
+  ChevronRight,
   CreditCard,
   FileText,
   HeartPulse,
   Loader2,
+  MessageSquare,
   Pill,
   QrCode,
   Stethoscope,
+  User,
 } from "lucide-react";
 import { generateBrief, getDrugWarnings, getPatient, getQr } from "./api/careRelayApi";
 import { compactCondition, display, shortMedName, titleCase } from "./utils/format";
 import DeepDive from "./DeepDive";
 
-const views = [
+/* ═══════════════════════════════════════════════════════════
+   Patient registry + view config
+   ═══════════════════════════════════════════════════════════ */
+
+const PATIENTS = [
+  { id: "emerald", name: "Emerald468 Botsford977", initials: "EB", source: "api" },
+  { id: "mitchell", name: "James R. Mitchell", initials: "JM", source: "static" },
+];
+
+const VIEWS = [
   { id: "snapshot", label: "Snapshot", icon: Stethoscope },
   { id: "deepDive", label: "Deep Dive", icon: Activity },
-  { id: "idCard", label: "ID Card", icon: CreditCard },
+  { id: "chat",     label: "Chat",      icon: MessageSquare },
+  { id: "idCard",   label: "ID Card",   icon: CreditCard },
 ];
 
 const metricOrder = ["hba1c", "blood_pressure", "ldl", "egfr", "weight", "glucose"];
 
+/* ═══════════════════════════════════════════════════════════
+   App root
+   ═══════════════════════════════════════════════════════════ */
+
 export default function App() {
+  const [activePatient, setActivePatient] = useState("emerald");
   const [activeView, setActiveView] = useState("snapshot");
   const [patientData, setPatientData] = useState(null);
   const [error, setError] = useState("");
@@ -56,8 +75,15 @@ export default function App() {
     );
   }
 
+  function handlePatientClick(pid) {
+    if (activePatient === pid) return; // already selected
+    setActivePatient(pid);
+    setActiveView("snapshot");
+  }
+
   return (
     <div className="app">
+      {/* ── Sidebar ── */}
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-mark">CR</div>
@@ -66,37 +92,134 @@ export default function App() {
             <span>Clinician snapshot</span>
           </div>
         </div>
+
         <nav className="nav">
-          {views.map((view) => {
-            const Icon = view.icon;
+          <div className="nav-section-label">Patients</div>
+          {PATIENTS.map((p) => {
+            const isActive = activePatient === p.id;
             return (
-              <button
-                className={activeView === view.id ? "nav-item active" : "nav-item"}
-                key={view.id}
-                onClick={() => setActiveView(view.id)}
-              >
-                <Icon size={18} />
-                {view.label}
-              </button>
+              <div key={p.id} className="patient-group">
+                <button
+                  className={`nav-item patient-item ${isActive ? "active-patient" : ""}`}
+                  onClick={() => handlePatientClick(p.id)}
+                >
+                  <div className="patient-avatar-sm">{p.initials}</div>
+                  <span className="patient-name-sidebar">{p.name}</span>
+                  {isActive ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </button>
+
+                {isActive && (
+                  <div className="sub-nav">
+                    {VIEWS.map((view) => {
+                      const Icon = view.icon;
+                      return (
+                        <button
+                          className={`nav-item sub-nav-item ${activeView === view.id ? "active" : ""}`}
+                          key={view.id}
+                          onClick={() => setActiveView(view.id)}
+                        >
+                          <Icon size={15} />
+                          {view.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
+
         <div className="sidebar-note">
           <BadgeCheck size={16} />
           Synthetic Synthea data. Not for clinical use.
         </div>
       </aside>
 
+      {/* ── Main content ── */}
       <main className="main">
         <DisclaimerBanner text={patientData.disclaimer} />
-        {activeView === "snapshot" && <Snapshot data={patientData} />}
-        {activeView === "deepDive" && <DeepDive data={patientData} />}
-        {activeView === "idCard" && <IDCard data={patientData} />}
 
+        {/* ── Emerald (API-driven) ── */}
+        {activePatient === "emerald" && activeView === "snapshot" && <Snapshot data={patientData} />}
+        {activePatient === "emerald" && activeView === "deepDive" && <DeepDive data={patientData} />}
+        {activePatient === "emerald" && activeView === "idCard"   && <IDCard data={patientData} />}
+        {activePatient === "emerald" && activeView === "chat"     && <ChatPlaceholder patientName="Emerald468 Botsford977" />}
+
+        {/* ── Mitchell (static HTML) ── */}
+        {activePatient === "mitchell" && (activeView === "snapshot" || activeView === "deepDive") && (
+          <MitchellEHR />
+        )}
+        {activePatient === "mitchell" && activeView === "idCard" && (
+          <MitchellIDPlaceholder />
+        )}
+        {activePatient === "mitchell" && activeView === "chat" && (
+          <ChatPlaceholder patientName="James R. Mitchell" />
+        )}
       </main>
     </div>
   );
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Mitchell — iframe embed of the reference EHR HTML
+   ═══════════════════════════════════════════════════════════ */
+
+function MitchellEHR() {
+  return (
+    <section className="page" style={{ padding: 0 }}>
+      <iframe
+        src="/mitchell_ehr.html"
+        title="James R. Mitchell EHR"
+        className="mitchell-iframe"
+      />
+    </section>
+  );
+}
+
+function MitchellIDPlaceholder() {
+  return (
+    <section className="page">
+      <div className="placeholder-view">
+        <CreditCard size={48} strokeWidth={1} />
+        <h2>ID Card — James R. Mitchell</h2>
+        <p>Medical ID card for this patient is not yet generated.<br />
+        This feature will be available once the patient record is fully integrated.</p>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Chat placeholder (for both patients)
+   ═══════════════════════════════════════════════════════════ */
+
+function ChatPlaceholder({ patientName }) {
+  return (
+    <section className="page">
+      <div className="placeholder-view chat-placeholder">
+        <MessageSquare size={48} strokeWidth={1} />
+        <h2>Clinical Chat</h2>
+        <p>RAG-powered clinical Q&A for <strong>{patientName}</strong></p>
+        <div className="chat-preview">
+          <div className="chat-input-mock">
+            <input
+              type="text"
+              placeholder={`Ask a question about ${patientName.split(" ")[0]}'s history...`}
+              disabled
+            />
+            <button disabled>Send</button>
+          </div>
+          <span className="coming-soon-badge">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Shared components (unchanged)
+   ═══════════════════════════════════════════════════════════ */
 
 function DisclaimerBanner({ text }) {
   return (
@@ -333,7 +456,6 @@ function DrugWarnings({ medications }) {
     </section>
   );
 }
-
 
 function IDCard({ data }) {
   const [qr, setQr] = useState(null);

@@ -3,11 +3,14 @@ import { Link } from 'react-router-dom'
 import { Search, UserPlus, Filter, MoreHorizontal, Users, Loader2 } from 'lucide-react'
 import { getMyPatients } from '../../api/connectionsApi'
 import { getPatientSessions } from '../../api/rehabApi'
+import PatientFilterBar from '../../components/PatientFilterBar'
 
 function PatientList() {
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterStatus, setFilterStatus] = useState('All')
 
   // Mock data for demo consistency
   const mockPatients = [
@@ -64,6 +67,16 @@ function PatientList() {
     }
   }
 
+  const filteredPatients = patients.filter(patient => {
+    const matchesSearch = patient.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          patient.condition.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          patient.id.toString().includes(searchQuery);
+    
+    const matchesFilter = filterStatus === 'All' || patient.status === filterStatus;
+    
+    return matchesSearch && matchesFilter;
+  });
+
   return (
     <div className="animate-fade-in">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
@@ -75,24 +88,12 @@ function PatientList() {
           <h1 className="text-4xl font-extrabold tracking-tight">Patient List</h1>
           <p className="text-[var(--color-text-muted)] mt-2 text-lg font-medium">Manage and monitor all your connected patients.</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-[280px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search by name, ID or condition..." 
-              className="auth-input h-[52px] !pl-14"
-            />
-          </div>
-          <button className="btn-secondary h-[52px]">
-            <Filter size={18} />
-            <span>Filters</span>
-          </button>
-          <Link to="/doctor/share" className="btn-primary h-[52px]">
-            <UserPlus size={18} />
-            <span>New Connection</span>
-          </Link>
-        </div>
+        <PatientFilterBar 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+        />
       </div>
 
       <div className="elevated-card overflow-hidden border-none shadow-xl min-h-[400px] flex flex-col">
@@ -114,8 +115,9 @@ function PatientList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {patients.map(patient => (
-                  <tr key={patient.id} className="hover:bg-slate-50/30 transition-all group">
+                {filteredPatients.length > 0 ? (
+                  filteredPatients.map(patient => (
+                    <tr key={patient.id} className="hover:bg-slate-50/30 transition-all group">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className={`h-11 w-11 rounded-2xl flex items-center justify-center font-bold transition-colors ${patient.isReal ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]' : 'bg-slate-100 text-slate-600'}`}>
@@ -152,7 +154,14 @@ function PatientList() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="px-8 py-12 text-center text-slate-500">
+                      No patients found matching your search and filter criteria.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -160,10 +169,10 @@ function PatientList() {
       </div>
 
       <div className="mt-8 flex items-center justify-between px-4">
-         <p className="text-sm text-slate-500 font-medium">Showing <strong>{patients.length}</strong> connected patients</p>
+         <p className="text-sm text-slate-500 font-medium">Showing <strong>{filteredPatients.length}</strong> connected patients</p>
          <div className="flex gap-2">
             <button className="btn-secondary py-2 px-6 text-xs" disabled>Previous</button>
-            <button className="btn-secondary py-2 px-6 text-xs" disabled={patients.length < 10}>Next Page</button>
+            <button className="btn-secondary py-2 px-6 text-xs" disabled={filteredPatients.length < 10}>Next Page</button>
          </div>
       </div>
     </div>

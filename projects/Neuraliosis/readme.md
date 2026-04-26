@@ -30,12 +30,11 @@ Neuraliosis provides an AI-driven symptom assistant that asks targeted follow-up
 
 ☐ Tech Stack
 
-- Mobile App: Flutter or React Native
-- Backend: Node.js (Express) or Python (FastAPI)
+- Mobile App: React Native
+- Backend: Python Django and FastAPI
 - Database: PostgreSQL
 - AI Layer: LLM-based triage plus retrieval (RAG)
 - Integrations: Apple HealthKit, Google Health Connect, telehealth APIs
-- Infrastructure: AWS (HIPAA-ready services, encryption, secure storage)
 
 ☐ Setup Instructions
 
@@ -48,11 +47,8 @@ Neuraliosis provides an AI-driven symptom assistant that asks targeted follow-up
 
 ☐ Demo link or screenshots
 
-- Demo Link: Add your hosted demo URL here
-- Screenshots:
-  - Add home screen screenshot
-  - Add symptom checker screen screenshot
-  - Add doctor booking screen screenshot
+- Demo: Provided in Demo folder
+- Screenshots:: Provided in Demo folder
 
 ---
 
@@ -258,6 +254,48 @@ These are projections based on comparable health app benchmarks. Real numbers wi
 ### Year 1
 
 **Revenue target:** $300,000
+
+## 12. Repository Overview
+
+This repository contains three main parts that work together as a single product:
+
+- `src/app`: the mobile client for symptom intake, AI chat, doctor discovery, medicines, carts, and appointments
+- `src/backend`: the Django backend that manages users, doctors, appointments, medicines, and orders
+- `src/ai`: the Python AI and RAG service used for symptom interpretation, question generation, and response synthesis
+
+### Main Product Flow
+
+1. A user enters symptoms in the mobile app.
+2. The AI layer asks follow-up questions and builds a more specific triage view.
+3. The backend returns doctor recommendations, medicine guidance, and report data when needed.
+4. The user can book an appointment, review order history, and revisit prior conversations or reports.
+
+### Backend Data Model
+
+The backend currently seeds and manages these core records:
+
+- custom users for patients, doctors, and admins
+- doctor profiles with specialization, hospital, availability, and contact details
+- appointment slots, live appointments, and appointment reports
+- medicine catalog items and order history
+
+### Seeded Demo Data
+
+The backend includes a `seed_data` management command for local testing and demos. It creates a realistic sample environment with:
+
+- an admin account
+- deterministic patient and doctor accounts for repeatable demos
+- upcoming appointment slots
+- completed appointment history with reports
+- sample medicines and orders
+
+For the featured demo patient, `manjeyy@email.com`, the seed script creates both a live appointment and appointment history so the app can show a realistic timeline.
+
+### Development Notes
+
+- The project is health-related software, so AI outputs should be treated as triage support, not diagnosis.
+- Any symptom guidance, OTC suggestions, or doctor recommendations should be presented with clear safety disclaimers.
+- The mobile app, backend, and AI service are intentionally separated so they can be developed and deployed independently.
 
 Revenue components:
 

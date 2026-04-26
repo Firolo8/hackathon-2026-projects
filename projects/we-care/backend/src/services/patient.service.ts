@@ -44,8 +44,14 @@ export async function getReferralByToken(token: string) {
     .from("referrals")
     .select(
       `
-      id, diagnosis, urgency, status, clinical_notes, created_at, doctor_id,
-      patients (full_name, date_of_birth, gender)
+      id, diagnosis, urgency, status, clinical_notes, created_at,
+      patients (full_name, date_of_birth, gender),
+      specialist:doctors!referrals_referred_by_fkey (
+        full_name,
+        contact_number,
+        specialties(name),
+        hospitals(name)
+      )
     `,
     )
     .eq("id", tokenRecord.referral_id)

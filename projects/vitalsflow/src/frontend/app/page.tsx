@@ -139,12 +139,11 @@ export default function DashboardPage() {
       actions={
         <Link
           href="/approvals"
-          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-all hover:brightness-110"
+          className="btn-secondary rounded-full"
           style={{
             background: "var(--accent-blue-dim)",
             border: "1px solid var(--accent-blue)",
             color: "var(--accent-blue)",
-            minHeight: "36px",
           }}
         >
           <ClipboardCheck className="h-3.5 w-3.5" />
@@ -218,7 +217,7 @@ export default function DashboardPage() {
                 >
                   Active Triage Queue
                 </h2>
-                <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                   Prioritized by NEWS2 severity and latest AI signal
                 </p>
               </div>
@@ -249,7 +248,7 @@ export default function DashboardPage() {
                     <th
                       key={h}
                       scope="col"
-                      className="px-6 py-3 text-[9px] font-semibold uppercase tracking-widest"
+                      className="px-6 py-3 text-[11px] font-semibold uppercase tracking-widest"
                       style={{
                         color: "var(--text-muted)",
                         background: "var(--bg-elevated)",
@@ -288,7 +287,7 @@ export default function DashboardPage() {
                             {row.patient}
                           </p>
                           <p
-                            className="mt-0.5 font-mono text-[10px]"
+                            className="mt-0.5 font-mono text-xs"
                             style={{ color: "var(--text-muted)" }}
                           >
                             {row.mrn}
@@ -362,12 +361,11 @@ export default function DashboardPage() {
             </p>
             <Link
               href="/patient/882910"
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all hover:-translate-y-0.5"
+              className="btn-secondary rounded-full"
               style={{
                 background: "var(--accent-blue-dim)",
                 border: "1px solid var(--accent-blue)",
                 color: "var(--accent-blue)",
-                minHeight: "36px",
               }}
             >
               Open Patient Detail

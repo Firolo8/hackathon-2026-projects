@@ -46,7 +46,6 @@ function ScoreRing({
   hexColor,
   hexStroke,
   size = 110,
-  label,
   sublabel,
   ringId,
 }: {
@@ -55,7 +54,6 @@ function ScoreRing({
   hexColor: string;
   hexStroke: string;
   size?: number;
-  label: string;
   sublabel: string;
   ringId: string;
 }) {
@@ -194,7 +192,6 @@ export function TriageScoreCard({ result }: TriageScoreCardProps) {
           hexColor={hex.color}
           hexStroke={hex.stroke}
           size={120}
-          label="risk"
           sublabel="AI Risk Score"
           ringId="risk"
         />
@@ -207,7 +204,6 @@ export function TriageScoreCard({ result }: TriageScoreCardProps) {
           hexColor={hex.color}
           hexStroke={hex.strokeDim}
           size={90}
-          label="news2"
           sublabel="NEWS2 Score"
           ringId="news2"
         />

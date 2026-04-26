@@ -102,13 +102,17 @@ export default function ApprovalsPage() {
                   <button
                     type="button"
                     onClick={() => setApproved((prev) => [...prev, item.id])}
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-emerald-300 bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-200"
+                    className="btn-primary rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, #0f8b8d, #0f766e)",
+                      boxShadow: "0 2px 8px rgba(15,139,141,0.24)",
+                    }}
                   >
                     Review & Sign
                   </button>
                   <button
                     type="button"
-                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border-default)] bg-white px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--bg-elevated)]"
+                    className="btn-secondary rounded-full"
                   >
                     Modify
                   </button>

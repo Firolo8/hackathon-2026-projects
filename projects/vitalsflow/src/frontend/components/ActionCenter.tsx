@@ -18,14 +18,6 @@ interface ActionCenterProps {
   onError?: (message: string) => void;
 }
 
-type Tier = "critical" | "urgent" | "routine";
-
-const tierHex: Record<Tier, { accent: string; bg: string; border: string }> = {
-  critical: { accent: "#ef4444", bg: "rgba(239,68,68,0.06)",  border: "rgba(239,68,68,0.2)" },
-  urgent:   { accent: "#f59e0b", bg: "rgba(245,158,11,0.06)", border: "rgba(245,158,11,0.2)" },
-  routine:  { accent: "#22c55e", bg: "rgba(34,197,94,0.06)",  border: "rgba(34,197,94,0.15)" },
-};
-
 export function ActionCenter({ patientId, actions, justification, news2Score, riskScore, tier, onError }: ActionCenterProps) {
   const [approved, setApproved] = useState<Set<number>>(new Set());
   const [dismissed, setDismissed] = useState<Set<number>>(new Set());
@@ -56,7 +48,6 @@ export function ActionCenter({ patientId, actions, justification, news2Score, ri
     }
   };
 
-  const style = tierHex[tier as Tier] ?? tierHex.routine;
   const approvedCount = approved.size;
   const totalCount = actions.length;
   const justPanelId = "action-just-panel";
@@ -99,7 +90,7 @@ export function ActionCenter({ patientId, actions, justification, news2Score, ri
           <div className="rounded-lg p-3" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)" }}>
             <button className="flex items-center justify-between w-full text-left clickable"
               onClick={() => setJustExpanded((v) => !v)}
-              aria-expanded={justExpanded} aria-controls={justPanelId} style={{ minHeight: "36px" }}>
+              aria-expanded={justExpanded} aria-controls={justPanelId} style={{ minHeight: "44px" }}>
               <div className="flex items-center gap-1.5">
                 <Brain className="h-3.5 w-3.5" style={{ color: "var(--accent-blue)" }} aria-hidden="true" />
                 <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--accent-blue)" }}>
@@ -159,14 +150,14 @@ export function ActionCenter({ patientId, actions, justification, news2Score, ri
                         aria-label={`Draft action: ${action}`}
                         title="Creates a FHIR ServiceRequest in draft status pending clinician review"
                         className="px-2.5 py-1.5 text-[10px] font-semibold rounded-md transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 clickable press-scale"
-                        style={{ minHeight: "32px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", color: "#16a34a" }}
+                        style={{ minHeight: "44px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", color: "#16a34a" }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.2)"; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.1)"; }}>
                         {approving.has(i) ? "Saving…" : "Draft"}
                       </button>
                       <button id={`dismiss-action-${i}`} onClick={() => dismiss(i)} aria-label={`Dismiss action: ${action}`}
                         className="px-2 py-1.5 text-[10px] rounded-md transition-colors clickable"
-                        style={{ minHeight: "32px", color: "var(--text-tertiary)" }}
+                        style={{ minHeight: "44px", color: "var(--text-tertiary)" }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text-tertiary)"; }}>
                         Skip

@@ -39,7 +39,7 @@ export default function SystemHealthPage() {
       actions={
         <button
           type="button"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--border-default)] bg-white px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--bg-elevated)]"
+          className="btn-secondary rounded-full"
         >
           <ArrowDownToLine className="h-3.5 w-3.5" />
           Export Logs
@@ -99,15 +99,15 @@ export default function SystemHealthPage() {
           <div className="mt-4 space-y-3 text-sm text-[var(--text-secondary)]">
             <label className="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2">
               <span>NEWS2 high-risk alert banner</span>
-              <input type="checkbox" defaultChecked className="h-4 w-4" />
+              <input type="checkbox" defaultChecked className="h-5 w-5 cursor-pointer" aria-label="Enable NEWS2 high-risk alert banner" />
             </label>
             <label className="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2">
               <span>Auto-escalate when score &gt; 7</span>
-              <input type="checkbox" defaultChecked className="h-4 w-4" />
+              <input type="checkbox" defaultChecked className="h-5 w-5 cursor-pointer" aria-label="Enable auto-escalate when score above seven" />
             </label>
             <label className="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2">
               <span>Gemini pre-fills summary notes</span>
-              <input type="checkbox" defaultChecked className="h-4 w-4" />
+              <input type="checkbox" defaultChecked className="h-5 w-5 cursor-pointer" aria-label="Enable Gemini pre-fills summary notes" />
             </label>
           </div>
         </article>

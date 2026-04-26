@@ -136,6 +136,12 @@ export function VitalsForm({
     value: VitalsPayload[K]
   ) => onChange({ ...vitals, [key]: value });
 
+  const updateNumeric = <K extends keyof VitalsPayload>(key: K, rawValue: string) => {
+    const parsed = Number.parseFloat(rawValue);
+    if (Number.isNaN(parsed)) return;
+    update(key, parsed as VitalsPayload[K]);
+  };
+
   return (
     <div
       className="glass-card overflow-hidden"
@@ -207,9 +213,7 @@ export function VitalsForm({
                     value={val}
                     aria-invalid={isInvalid ? true : undefined}
                     aria-describedby={hintId}
-                    onChange={(e) =>
-                      update(key, parseFloat(e.target.value) as VitalsPayload[typeof key])
-                    }
+                    onChange={(e) => updateNumeric(key, e.target.value)}
                     className="w-full rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 tabular-nums"
                     style={{
                       background: "var(--bg-surface)",
@@ -217,7 +221,7 @@ export function VitalsForm({
                       color: "var(--text-primary)",
                       outline: "none",
                       fontFamily: "var(--font-inter)",
-                      minHeight: "40px",
+                      minHeight: "44px",
                       touchAction: "manipulation",
                     }}
                     onFocus={(e) => {
@@ -234,7 +238,8 @@ export function VitalsForm({
                   className="text-[8px] sm:text-[9px]"
                   style={{ color: colors.text }}
                 >
-                  {unit} · {hint}{isInvalid ? (status === "critical" ? " ⚠ Out of range" : " ⚠ Check value") : ""}
+                  {unit} · {hint}
+                  {isInvalid ? (status === "critical" ? " · Out of range" : " · Check value") : ""}
                 </p>
               </div>
             );
@@ -263,7 +268,7 @@ export function VitalsForm({
                 color: "var(--text-primary)",
                 outline: "none",
                 fontFamily: "var(--font-inter)",
-                minHeight: "40px",
+                minHeight: "44px",
                 touchAction: "manipulation",
               }}
               onFocus={(e) => {
@@ -299,6 +304,7 @@ export function VitalsForm({
                   : "var(--bg-surface)",
                 border: `1px solid ${vitals.on_supplemental_o2 ? "var(--accent-blue)" : "var(--border-default)"}`,
                 transition: "all 0.2s",
+                minHeight: "44px",
               }}
             >
               <div className="relative shrink-0">
@@ -339,10 +345,7 @@ export function VitalsForm({
         {/* Submit button */}
         <button
           id="run-triage-btn"
-          onClick={() => {
-            console.log("[VitalsFlow] Run AI Triage button clicked");
-            onSubmit();
-          }}
+          onClick={onSubmit}
           disabled={isLoading}
           className="btn-primary w-full py-2 sm:py-3 text-xs sm:text-base"
         >

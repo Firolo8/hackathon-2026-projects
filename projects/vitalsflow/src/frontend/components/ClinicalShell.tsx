@@ -53,7 +53,7 @@ export function ClinicalShell({ title, subtitle, children, actions }: ClinicalSh
         }}
       >
         {/* ── Top bar ── */}
-        <div className="flex w-full items-center justify-between gap-4 px-6 py-4">
+        <div className="flex w-full max-w-[1280px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div>
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.18em]"
@@ -104,15 +104,8 @@ export function ClinicalShell({ title, subtitle, children, actions }: ClinicalSh
 
             <button
               type="button"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors press-scale"
-              style={{
-                borderColor: "var(--border-default)",
-                background: "#fff",
-                color: "var(--text-secondary)",
-              }}
+              className="icon-btn press-scale"
               aria-label="View notifications"
-              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-elevated)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
             >
               <Bell className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -123,7 +116,7 @@ export function ClinicalShell({ title, subtitle, children, actions }: ClinicalSh
         </div>
 
         {/* ── Nav strip ── */}
-        <div className="flex w-full items-center gap-2 px-6 pb-3">
+        <div className="flex w-full max-w-[1280px] items-center gap-2 px-4 pb-3 sm:px-6">
           <nav aria-label="Primary navigation" className="flex flex-wrap items-center gap-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -134,10 +127,8 @@ export function ClinicalShell({ title, subtitle, children, actions }: ClinicalSh
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all press-scale",
-                    isActive
-                      ? "border-[var(--accent-blue)] bg-[var(--accent-blue-dim)] text-[var(--accent-blue)]"
-                      : "border-[var(--border-default)] bg-white text-[var(--text-secondary)] hover:border-[var(--accent-blue)]/40 hover:bg-[var(--accent-blue-dim)] hover:text-[var(--accent-blue)]"
+                    "nav-pill press-scale",
+                    isActive ? "active" : ""
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -157,9 +148,7 @@ export function ClinicalShell({ title, subtitle, children, actions }: ClinicalSh
       </header>
 
       {/* ── Page content ── */}
-      {/* FIX 1: was py-10 (too much). Now pt-5 pb-8 — tighter top, reasonable bottom */}
-      {/* FIX 2: was w-[98%] with px-2 — now full width with px-6 matching the header */}
-      <main id="main-content" className="w-full pt-5 pb-8 px-6">
+      <main id="main-content" className="mx-auto w-full max-w-[1280px] px-4 pb-8 pt-5 sm:px-6">
         {children}
       </main>
     </div>

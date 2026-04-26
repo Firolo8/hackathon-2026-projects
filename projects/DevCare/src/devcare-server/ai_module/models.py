@@ -6,7 +6,7 @@ class ExerciseSession(models.Model):
     patient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="exercise_sessions",
+        related_name="ai_exercise_sessions",
     )
     exercise = models.CharField(max_length=64)
     reps = models.PositiveIntegerField(default=0)

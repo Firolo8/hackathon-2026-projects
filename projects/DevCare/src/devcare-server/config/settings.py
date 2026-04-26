@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'rehab',
     'ai_module',
     'carebot',
+    'connections',
 ]
 
 MIDDLEWARE = [

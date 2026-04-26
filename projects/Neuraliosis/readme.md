@@ -59,6 +59,7 @@ Neuraliosis provides an AI-driven symptom assistant that asks targeted follow-up
 Neuraliosis is an AI-powered mobile health application taking the US market as the reference. It combines fitness tracking, symptom detection, OTC medicine guidance, doctor recommendations, and appointment booking into one seamless platform.
 
 The US digital health market is large and growing quickly. Recent market analyses estimate US digital health at $81.17 billion in 2023 and about $94.95 billion in 2024, with continued strong growth expected through 2030 [1]. At the same time, telehealth utilization accelerated sharply during COVID-19, with CDC reporting a 50% increase in telehealth visits in early 2020 versus 2019 and a 154% spike in late March 2020 [2].
+
 ## 15. AI Layer - Neuraliosis Health Assistant
 
 ### Architecture
@@ -93,7 +94,6 @@ The AI system is built with LangGraph, a graph-based agent framework, and uses O
 ### API
 
 The AI service exposes a FastAPI layer with endpoints for chat, history, session management, and clearing sessions. The response includes confidence, seriousness flags, doctor need, specialist type, and question count.
-
 
 ## 2. Problem Statement
 

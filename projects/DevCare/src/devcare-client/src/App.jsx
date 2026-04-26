@@ -15,15 +15,15 @@ import FeedbackReview from './pages/doctor/FeedbackReview'
 import ShareConnection from './pages/doctor/ShareConnection'
 
 // Patient Pages
-import PatientDashboard from './pages/patient/Dashboard'
-import TherapySession from './pages/patient/TherapySession'
-import SessionResult from './pages/patient/SessionResult'
-import SessionDetail from './pages/patient/SessionDetail'
-import TherapyRoadmap from './pages/patient/TherapyRoadmap'
-import Progress from './pages/patient/Progress'
-import Feedback from './pages/patient/Feedback'
-import JoinDoctor from './pages/patient/JoinDoctor'
-import StartSession from './pages/patient/StartSession'
+import PatientDashboard from './pages/Patient/Dashboard'
+import TherapySession from './pages/Patient/TherapySession'
+import SessionResult from './pages/Patient/SessionResult'
+import SessionDetail from './pages/Patient/SessionDetail'
+import TherapyRoadmap from './pages/Patient/TherapyRoadmap'
+import Progress from './pages/Patient/Progress'
+import Feedback from './pages/Patient/Feedback'
+import JoinDoctor from './pages/Patient/JoinDoctor'
+import StartSession from './pages/Patient/StartSession'
 
 function App() {
   return (

@@ -296,7 +296,7 @@ class UnifiedActivationSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     "This account is already activated. Please log in."
                 )
-            if normal_user.status == 'inactive':
+            if normal_user.is_verified and normal_user.status == 'inactive':
                 raise serializers.ValidationError("This account has been deactivated.")
             return value
         

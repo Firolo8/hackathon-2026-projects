@@ -1,3 +1,19 @@
+# environment file
+.env
+
+# macOS metadata
+.DS_Store
+
+
+# IDE Settings (the trailing slash indicates that all the subfolders inside .vscode to be ignored too)
+.vscode/ 
+
+__pycache__/
+
+chroma_store/
+projects/techmantra/src/db/triage.db
+projects/techmantra/src/integrations/credentials.json
+projects/techmantra/src/integrations/token.json
 node_modules
 .DS_Store
 .DS_Store*
